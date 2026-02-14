@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plataforma de Gestión Operativa PTAP | Servicios Profesionales Tera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+        
+        :root {
+            --navy: #0a192f;
+            --navy-light: #172a45;
+            --sky: #0ea5e9;
+            --emerald: #10b981;
+            --pink: #ec4899;
+            --amber: #f59e0b;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f1f5f9; 
+            color: #0a192f; 
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .bg-navy { background-color: var(--navy); }
+        .bg-navy-light { background-color: var(--navy-light); }
+        
+        .view-container { 
+            display: none; 
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .view-active { display: block !important; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-tech { 
+            background: white;
+            border-radius: 1rem;
+            border-top: 5px solid var(--navy);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-label { 
+            font-size: 0.6rem; 
+            font-weight: 800; 
+            color: #475569; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            margin-bottom: 3px; 
+            display: block; 
+        }
+
+        input, select, textarea {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 10px;
+            font-weight: 700;
+            color: #0a192f;
+            background-color: #ffffff;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .btn-simulation {
+            background: linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%);
+            color: white !important;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            width: 100%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0.5rem;
+        }
+
+        table { 
+            min-width: 1000px; 
+            width: 100%; 
+            font-size: 0.75rem; 
+            border-collapse: collapse; 
+        }
+
+        th { background: var(--navy); color: white !important; padding: 12px; font-weight: 800; text-align: center; }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+
+        .barrier-ok { background-color: #dcfce7; color: #166534; font-weight: 900; border-radius: 4px; padding: 2px 5px; }
+        .barrier-fail { background-color: #fee2e2; color: #991b1b; font-weight: 900; border-radius: 4px; padding: 2px 5px; }
+        
+        .stat-card {
+            background: #ffffff;
+            border-bottom: 4px solid var(--sky);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .cell-navy { background-color: var(--navy) !important; color: white !important; }
+        .input-on-navy { background-color: var(--navy-light) !important; color: white !important; border: 1px solid rgba(255,255,255,0.2) !important; font-weight: 900 !important; text-align: center; }
+
+        .tab-btn { padding: 12px 24px; font-weight: 800; font-size: 10px; text-transform: uppercase; border-radius: 8px 8px 0 0; transition: all 0.3s; }
+        .tab-active { background: white; color: var(--navy); border: 1px solid #e2e8f0; border-bottom: none; }
+        .tab-inactive { background: rgba(10, 25, 47, 0.1); color: #64748b; }
+
+        .autonomy-critical { background: #fee2e2 !important; color: #991b1b !important; font-weight: 900; border: 2px solid #ef4444; }
+        .autonomy-safe { background: #dcfce7 !important; color: #166534 !important; font-weight: 900; }
+
+        .product-row {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .chart-container { max-width: 250px; margin: 0 auto; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="toast" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none opacity-0 transition-opacity bg-navy text-white p-4 rounded-xl text-center font-bold shadow-2xl"></div>
+
+    <!-- 1. VISTA: PORTADA -->
+    <div id="view_landing" class="view-container view-active relative bg-navy flex flex-col overflow-hidden text-center">
+        <div class="absolute inset-0 opacity-10">
+            <svg width="100%" height="100%"><pattern id="grid_p" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/></pattern><rect width="100%" height="100%" fill="url(#grid_p)" /></svg>
+        </div>
+        <nav class="relative z-20 p-6 max-w-7xl mx-auto w-full flex justify-between items-center text-center">
+            <div class="w-10 h-10 bg-sky-50 rounded-lg flex items-center justify-center font-black text-navy text-lg shadow-xl">T</div>
+            <div class="text-white/40 text-[9px] font-black uppercase tracking-widest text-right">Tera System v14.0<br>INEN 1108 COMPLIANT</div>
+        </nav>
+        <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4">
+            <div class="w-full max-w-5xl space-y-10">
+                <span class="inline-block px-4 py-1 bg-sky-500/10 border border-sky-500/30 text-sky-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">PLATAFORMA GESTIÓN PTAP</span>
+                <h1 class="text-4xl sm:text-6xl font-black text-white italic leading-tight text-center">Gestión Técnica y Operativa <br><span class="text-sky-500">PTAP</span></h1>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 text-center">
+                    <button onclick="switchView('console')" class="p-6 glass-panel rounded-2xl border border-white/5 active:scale-95 transition-all text-center">
+                        <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white mb-4 mx-auto"><svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                        <h3 class="text-white font-black text-lg">Consola Técnica</h3>
+                        <p class="text-slate-400 text-[10px] italic">Optimización y Diseño.</p>
+                    </button>
+                    <button onclick="switchView('ops')" class="p-6 glass-panel rounded-2xl border border-white/5 active:scale-95 transition-all text-center">
+                        <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white mb-4 mx-auto"><svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                        <h3 class="text-white font-black text-lg">Hoja Operativa</h3>
+                        <p class="text-slate-400 text-[10px] italic">Registro de Turnos.</p>
+                    </button>
+                    <button onclick="switchView('inventory')" class="p-6 glass-panel rounded-2xl border border-white/5 active:scale-95 transition-all text-center">
+                        <div class="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center text-white mb-4 mx-auto"><svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
+                        <h3 class="text-white font-black text-lg">Autonomía y Stock</h3>
+                        <p class="text-slate-400 text-[10px] italic">Kardex Maestro.</p>
+                    </button>
+                    <button onclick="switchView('finance')" class="p-6 glass-panel rounded-2xl border border-white/5 active:scale-95 transition-all text-center text-center">
+                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white mb-4 mx-auto text-center text-center"><svg class="w-5 h-5 mx-auto text-center" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                        <h3 class="text-white font-black text-lg text-center">Finanzas PTAP</h3>
+                        <p class="text-slate-400 text-[10px] italic text-center text-center">Gestión de Gastos.</p>
+                    </button>
+                </div>
+                <button onclick="switchView('log')" class="w-full p-6 glass-panel rounded-2xl border border-white/5 active:scale-95 transition-all text-center mt-6">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white mb-4 mx-auto"><svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+                    <h3 class="text-white font-black text-lg">Bitácora Maestra PTAP</h3>
+                    <p class="text-slate-400 text-[10px] italic">Historial Completo de Operación.</p>
+                </button>
+            </div>
+        </main>
+        <footer class="p-8 text-center text-white/10 font-bold text-[9px] uppercase tracking-widest text-center text-center">Servicios Profesionales Tera</footer>
+    </div>
+
+    <!-- 2. VISTA: CONSOLA TÉCNICA -->
+    <div id="view_console" class="view-container">
+        <header class="bg-navy text-white py-6 px-4 shadow-2xl flex justify-between items-center border-b-4 border-sky-500">
+            <button onclick="switchView('landing')" class="bg-white/10 px-4 py-2 rounded-lg font-black text-[10px]">← INICIO</button>
+            <h2 class="text-xl font-black italic uppercase text-center">Consola de Ingeniería y Evaluación</h2>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-center">
+                <section class="lg:col-span-4 card-tech p-6 text-center">
+                    <h2 class="text-lg font-black text-navy uppercase mb-4">01. Hidráulica Evaluación</h2>
+                    <div class="space-y-4">
+                        <label class="input-label">Caudal Evaluación (L/s)</label>
+                        <input type="number" id="plant_flow" class="text-center text-3xl font-black text-sky-600" oninput="actualizarHidraulica()" placeholder="0.0">
+                        <div class="bg-slate-50 p-3 rounded-lg border">
+                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Volumen Día</p>
+                            <p class="text-lg font-bold text-navy text-center" id="val_flow_d">0.00 m3/día</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="lg:col-span-8 card-tech p-6 text-center">
+                    <h2 class="text-lg font-black text-navy uppercase mb-6">02. Caracterización del Agua</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
+                        <div><label class="input-label">Turbiedad (NTU)</label><input type="number" id="sim_turb" value="0"></div>
+                        <div><label class="input-label">pH Crudo</label><input type="number" step="0.1" id="sim_ph" value="0.0"></div>
+                        <div><label class="input-label">Color (UC)</label><input type="number" id="sim_color" value="0"></div>
+                        <div><label class="input-label text-center">Hierro (mg/L)</label><input type="number" step="0.01" id="sim_fe" value="0.00"></div>
+                        <div><label class="input-label text-center">Alcalinidad</label><input type="number" id="sim_alc" value="0"></div>
+                        <div><label class="input-label text-center text-center">Nitritos</label><input type="number" step="0.01" id="sim_no2" value="0.00" class="text-center"></div>
+                    </div>
+                    <button onclick="ejecutarSimulacion()" class="btn-simulation mt-6">Ejecutar Simulación Técnica</button>
+                </section>
+            </div>
+
+            <!-- RESULTADOS SUGERIDOS -->
+            <section id="sim_result_container" class="hidden bg-navy rounded-2xl shadow-xl p-6 text-center">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div><p class="text-sky-400 font-black text-[9px] uppercase">PAC Sugerido</p><p class="text-2xl font-black text-white" id="res_sim_pac">--</p></div>
+                    <div><p class="text-red-400 font-black text-[9px] uppercase">RpH Sugerido</p><p class="text-2xl font-black text-white" id="res_sim_rph">--</p></div>
+                    <div><p class="text-amber-400 font-black text-[9px] uppercase">Ayudante Sugerido</p><p class="text-2xl font-black text-white" id="res_sim_ayudante_sug">--</p></div>
+                    <div><p class="text-blue-400 font-black text-[9px] uppercase">Cloro Sugerido</p><p class="text-2xl font-black text-white" id="res_sim_cloro_sug">--</p></div>
+                </div>
+            </section>
+
+            <!-- 03. JARRAS -->
+            <section class="card-tech p-6 text-center">
+                <h2 class="text-lg font-black text-navy uppercase mb-8">03. Matriz de Validación en Jarras</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center text-center text-center">
+                    <script>
+                        for(let i=1; i<=4; i++) {
+                            document.write(`
+                            <div id="jar_container_${i}" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 0${i}</h4>
+                                <div class="space-y-2 mb-3">
+                                    <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_${i}" value="0"></div>
+                                    <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_${i}" value="0"></div>
+                                    <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_${i}" value="0"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1 pt-2 border-t">
+                                    <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_${i}" class="text-center p-1 text-xs"></div>
+                                    <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_${i}" class="text-center p-1 text-xs"></div>
+                                    <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_${i}" class="text-center p-1 text-xs text-center"></div>
+                                </div>
+                            </div>
+                            `);
+                        }
+                    </script>
+                </div>
+                <button onclick="compararJarras()" class="btn-simulation bg-sky-600 mt-6">Validar Mejor Vaso (INEN < 1)</button>
+            </section>
+
+            <!-- VASO GANADOR -->
+            <section id="best_jar_final_box" class="hidden bg-emerald-900 border-l-8 border-emerald-400 p-8 rounded-2xl shadow-2xl text-white">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="text-left text-center md:text-left text-center">
+                        <span class="inline-block px-3 py-1 bg-emerald-400 text-emerald-900 font-black rounded-full text-[10px] mb-2 uppercase">Vaso Ganador Seleccionado</span>
+                        <h2 class="text-4xl font-black italic text-center md:text-left" id="final_best_jar_title">Vaso 02</h2>
+                        <p class="text-emerald-100 text-sm mt-1">Cumple criterios técnicos: Turbiedad y Color < 1.</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 flex-1 w-full md:w-auto text-center">
+                        <div class="bg-white/10 p-3 rounded-xl"><span class="block text-[8px] font-bold">Dosis PAC</span><span class="text-2xl font-black" id="final_best_pac">0.0</span></div>
+                        <div class="bg-white/10 p-3 rounded-xl"><span class="block text-[8px] font-bold">Dosis RpH</span><span class="text-2xl font-black" id="final_best_rph">0.0</span></div>
+                        <div class="bg-white/10 p-3 rounded-xl"><span class="block text-[8px] font-bold">Dosis Ayud.</span><span class="text-2xl font-black" id="final_best_ay">0.0</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 04. CLORO -->
+            <section class="card-tech p-6 text-center">
+                <h2 class="text-lg font-black text-navy uppercase mb-6">04. Balance de Cloro y Demanda</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-left">
+                    <div class="space-y-4 text-center">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="input-label text-center text-center">Dosis Aplicada</label><input type="number" id="cl_applied" step="0.1" value="0" oninput="calcularBalanceCloro()"></div>
+                            <div><label class="input-label text-center text-center">Residual Medido</label><input type="number" id="cl_measured" step="0.1" value="0" oninput="calcularBalanceCloro()"></div>
+                        </div>
+                        <div class="text-center"><label class="input-label text-center text-center">Residual Meta (INEN 1108)</label><input type="number" id="cl_target" step="0.1" value="1.0" oninput="calcularBalanceCloro()"></div>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-sky-200 text-center">
+                        <p class="text-[9px] font-black text-slate-400 uppercase">Demanda Química Real</p>
+                        <p class="text-3xl font-black text-navy mb-4" id="cl_res_demand">0.00</p>
+                        <p class="text-[9px] font-black text-sky-500 uppercase">Dosis Operativa Sugerida</p>
+                        <p class="text-4xl font-black text-sky-600" id="cl_res_dose">0.00</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 05. IMPACTO ECONÓMICO DISEÑO -->
+            <section id="sim_finance_container" class="hidden card-tech p-6 border-t-8 border-pink-500 text-center text-center">
+                <h2 class="text-lg font-black text-navy uppercase mb-6 flex items-center gap-2 justify-center text-center">Impacto Económico Proyectado</h2>
+                <div class="table-container border text-center text-center text-center">
+                    <table class="text-center text-center text-center">
+                        <thead>
+                            <tr>
+                                <th>Insumo Validado</th>
+                                <th>Dosis Final (mg/L)</th>
+                                <th>$/kg Proyectado</th>
+                                <th>Masa (kg/mes)</th>
+                                <th>Gasto Mensual ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sim_economics_body"></tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-center">
+                    <div class="bg-navy text-white p-6 rounded-xl text-center">
+                        <p class="text-[8px] font-black text-sky-400 uppercase text-center">Costo Unitario Optimizado</p>
+                        <p class="text-3xl font-black text-center" id="sim_cost_m3">0.0000 USD/m3</p>
+                    </div>
+                    <div class="bg-pink-50 border-2 border-pink-200 p-6 rounded-xl text-center">
+                        <p class="text-[8px] font-black text-pink-600 uppercase text-center text-center">Inversión Mensual Estimada</p>
+                        <p class="text-3xl font-black text-navy text-center" id="sim_mes_total">$ 0.00</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ÁREA DE MEMORIA TÉCNICA -->
+            <section class="card-tech p-8 border-t-8 border-emerald-500 text-center">
+                <h2 class="text-2xl font-black text-navy uppercase italic mb-8">Finalizar y Emitir Memoria Técnica Profesional</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-4xl mx-auto text-center">
+                    <div><label class="input-label text-center">Entidad / Organización</label><input type="text" id="repo_org" placeholder="Nombre Institución"></div>
+                    <div><label class="input-label text-center">Punto de Captación / Muestreo</label><input type="text" id="repo_sample" placeholder="Toma de Agua"></div>
+                </div>
+                <button onclick="emitirYGuardar()" class="w-full max-w-2xl bg-navy text-white py-6 rounded-2xl font-black uppercase text-lg shadow-2xl hover:bg-navy-light mt-10 transition-all mx-auto block text-center">Generar Memoria Técnica (PDF)</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3. VISTA: HOJA OPERATIVA -->
+    <div id="view_ops" class="view-container">
+        <header class="bg-navy text-white py-6 px-4 shadow-xl flex justify-between items-center border-b-4 border-pink-500">
+            <button onclick="switchView('landing')" class="bg-white/10 px-4 py-2 rounded-lg font-black text-[10px]">← INICIO</button>
+            <h2 class="text-xl font-black italic uppercase text-center text-center">Control Operativo Diario</h2>
+        </header>
+        <main class="p-4 space-y-8">
+            <section class="card-tech p-6 text-center">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center text-center">
+                    <div><label class="input-label">Firma del Operador en Turno</label><input type="text" id="ops_operator" placeholder="Nombre" class="text-center border-2 border-navy/10"></div>
+                    <div class="chart-container"><canvas id="complianceChart"></canvas><p id="complianceText" class="text-xs font-black text-navy mt-2 text-center text-center text-center text-center">Cumplimiento Barreras: 0%</p></div>
+                </div>
+            </section>
+            
+            <!-- AFORO Y DOSIFICACIÓN REAL (RESTAURADA) -->
+            <section class="card-tech p-6 border-t-8 border-blue-500">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-black text-navy uppercase">Dosificación y Aforo Real de Bomba</h2>
+                    <div class="flex items-center gap-3">
+                        <label class="input-label mb-0">Caudal Ingreso (L/s)</label>
+                        <input type="number" id="ops_plant_flow_ref" placeholder="0.0" class="w-24 text-center border-sky-400" oninput="recalcularTodaDosisOps()">
+                        <button onclick="agregarProductoOps()" class="bg-blue-600 text-white w-10 h-10 rounded-full font-black text-xl hover:bg-blue-700 shadow-lg text-center text-center">+</button>
+                    </div>
+                </div>
+                <div id="ops_products_container" class="space-y-4"></div>
+            </section>
+
+            <!-- MONITOREO HORARIO -->
+            <section class="card-tech p-6 text-center">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="stat-card"><span class="text-[8px] uppercase block font-black text-slate-400">Promedio Turno</span><span id="ops_avg_flow" class="font-black text-2xl text-navy">0.00 L/s</span></div>
+                    <div class="stat-card border-b-emerald-500"><span class="text-[8px] uppercase block font-black text-slate-400">Producción Turno</span><span id="ops_daily_m3" class="font-black text-2xl text-emerald-600">0.00 m3</span></div>
+                    <div class="stat-card border-b-sky-500"><span class="text-[8px] uppercase block font-black text-slate-400">Proyectado Mes</span><span id="ops_monthly_m3" class="font-black text-2xl text-sky-600">0.00 m3</span></div>
+                </div>
+                <div class="table-container border">
+                    <table class="ops-table">
+                        <thead>
+                            <tr class="bg-navy text-white text-center">
+                                <th rowspan="2">Hora</th><th rowspan="2">Caudal (L/s)</th><th colspan="2" class="cell-navy border-b border-white/20 uppercase text-[10px]">Barreras Sanitarias</th><th rowspan="2">Color Trat.</th><th rowspan="2">Turb. Trat.</th><th rowspan="2">Estado</th>
+                            </tr>
+                            <tr class="text-white text-center">
+                                <th class="cell-navy border-r border-white/10 text-center text-center">pH Salida</th><th class="cell-navy text-center text-center">Cloro Res.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ops_tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+            <button onclick="finalizarDiaOps()" class="w-full bg-navy text-white py-4 rounded-xl font-black uppercase text-xs shadow-lg">Archivar Turno y Descontar Stock</button>
+        </main>
+    </div>
+
+    <!-- 4. VISTA: STOCK -->
+    <div id="view_inventory" class="view-container">
+        <header class="bg-navy text-white py-6 px-4 shadow-xl flex justify-between items-center border-b-4 border-pink-500 text-center">
+            <button onclick="switchView('landing')" class="bg-white/10 px-4 py-2 rounded-lg font-black text-[10px]">← INICIO</button>
+            <h2 class="text-xl font-black italic uppercase text-center text-center text-center">Kardex Maestro de Insumos</h2>
+        </header>
+        <main class="max-w-6xl mx-auto p-4 space-y-6 text-center">
+            <section class="card-tech p-6 text-center">
+                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4">Gestión de Productos en Planta</h3>
+                <div id="inventory_selection" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </section>
+
+            <section class="card-tech p-6 text-center">
+                <div class="table-container border">
+                    <table>
+                        <thead>
+                            <tr><th>Insumo</th><th>Stock Físico (kg)</th><th>Fecha Actualización</th><th>Autonomía</th><th>Estado</th></tr>
+                        </thead>
+                        <tbody id="inventory_body"></tbody>
+                    </table>
+                </div>
+                <button onclick="renderInventory()" class="btn-simulation mt-8 bg-pink-600">Refrescar Balance Global</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- 5. VISTA: FINANZAS -->
+    <div id="view_finance" class="view-container">
+        <header class="bg-navy text-white py-6 px-4 shadow-xl flex justify-between items-center border-b-4 border-amber-500">
+            <button onclick="switchView('landing')" class="bg-white/10 px-4 py-2 rounded-lg font-black text-[10px]">← INICIO</button>
+            <h2 class="text-xl font-black italic uppercase text-center">Gestión Económica Mensual</h2>
+        </header>
+        <main class="max-w-5xl mx-auto p-4 space-y-6">
+            <section class="card-tech p-6 text-center">
+                <div class="table-container border">
+                    <table>
+                        <thead><tr><th>Insumo PTAP</th><th>Dosis Operativa (mg/L)</th><th>Precio ($/kg)</th><th>Masa (kg/mes)</th><th>Gasto Mes ($)</th></tr></thead>
+                        <tbody id="economics_body"></tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div class="bg-navy text-white p-6 rounded-xl shadow-xl text-center">
+                        <p class="text-sky-400 text-[10px] uppercase font-black">Presupuesto Mensual</p>
+                        <p class="text-3xl font-black mono" id="fin_mes_total">$ 0.00</p>
+                    </div>
+                    <div class="bg-white border-2 border-navy p-6 rounded-xl shadow-xl text-center">
+                        <p class="text-navy text-[10px] uppercase font-black">Costo Unitario USD/m3</p>
+                        <p class="text-3xl font-black text-emerald-600 mono" id="fin_cost_m3">0.0000</p>
+                    </div>
+                </div>
+                <button onclick="calcularCostosTotales()" class="btn-simulation mt-6 bg-amber-500">Actualizar Análisis de Costos</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- 6. BITÁCORA -->
+    <div id="view_log" class="view-container">
+        <header class="bg-navy text-white py-6 px-4 shadow-xl flex justify-between items-center border-b-4 border-emerald-500 text-center">
+            <button onclick="switchView('landing')" class="bg-white/10 px-4 py-2 rounded-lg font-black text-[10px]">← INICIO</button>
+            <h2 class="text-xl font-black italic uppercase">Bitácora Maestra PTAP</h2>
+        </header>
+        <main class="p-4 space-y-6 text-center">
+            <div class="flex border-b justify-center">
+                <button id="tab_btn_design" onclick="showLogTab('design')" class="tab-btn tab-active">Historial Diseños</button>
+                <button id="tab_btn_ops" onclick="showLogTab('ops')" class="tab-btn tab-inactive">Historial Turnos</button>
+            </div>
+            <div id="log_design_container" class="card-tech p-4 table-container border"><table class="log-table"><thead><tr><th>Fecha</th><th>Entidad</th><th>Caudal L/s</th><th>Mejor Vaso</th><th>USD/m3</th><th>Acción</th></tr></thead><tbody id="log_design_tbody"></tbody></table></div>
+            <div id="log_ops_container" class="hidden card-tech p-4 table-container border text-center"><table class="log-table"><thead><tr><th>Fecha</th><th>Operador</th><th>Volumen m3</th><th>pH Prom.</th><th>Cloro Prom.</th><th>Estado</th></tr></thead><tbody id="log_ops_tbody"></tbody></table></div>
+            <button onclick="exportarExcel()" class="w-full bg-emerald-600 text-white py-4 rounded-xl font-black mt-6">Exportar Historial</button>
+        </main>
+    </div>
+
+    <script>
+        // --- DATA MAESTRA PERSISTENTE ---
+        let productStock = { 
+            PAC: { amount: 1000, update: '11/02/2026', used: true }, SULFATO: { amount: 1000, update: '11/02/2026', used: false }, 
+            RPH: { amount: 500, update: '11/02/2026', used: true }, CAL: { amount: 500, update: '11/02/2026', used: false }, 
+            HIPO: { amount: 200, update: '11/02/2026', used: true }, GAS: { amount: 200, update: '11/02/2026', used: false }, 
+            AYUDANTE: { amount: 100, update: '11/02/2026', used: true } 
+        };
+        let savedDesignRecords = [], savedOpsRecords = [], opsChart = null;
+        let bestJarInfo = { num: "-", pac: 0, rph: 0, ay: 0, turb: 0, color: 0, ph: 0 };
+        let latestCaracterization = { turb: 0, ph: 0, col: 0, fe: 0, alc: 0, n2: 0 };
+
+        const getVal = id => parseFloat(document.getElementById(id)?.value) || 0;
+        const setResText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if(!t) return;
+            t.innerText = msg; t.style.opacity = "1";
+            setTimeout(() => t.style.opacity = "0", 3000);
+        }
+
+        // Definir verReporteHistorico en el ámbito global explícitamente para evitar ReferenceError en onclick
+        window.verReporteHistorico = function(index) {
+            if (savedDesignRecords[index]) {
+                generarInformeBase(savedDesignRecords[index]);
+            }
+        };
+
+        // --- NAVEGACIÓN ---
+        function switchView(v) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('view-active'));
+            const target = document.getElementById('view_'+v);
+            if(target) target.classList.add('view-active');
+            
+            if(v === 'log') renderLog();
+            if(v === 'ops') renderOps();
+            if(v === 'inventory') { renderInventorySelection(); renderInventory(); }
+            if(v === 'finance') { inicializarFinanzas(); calcularCostosTotales(); }
+            if(v === 'console') { inicializarFinanzasSim(); calcularCostosSimulacion(); }
+        }
+
+        window.onload = () => {
+            inicializarFinanzasSim(); 
+            renderInventorySelection();
+            renderOps();
+            agregarProductoOps();
+        };
+
+        // --- CONSOLA TÉCNICA (SIMULACIÓN ACTUALIZADA) ---
+        function ejecutarSimulacion() {
+            const t = getVal('sim_turb'), ph = getVal('sim_ph'), fe = getVal('sim_fe'), alc = getVal('sim_alc'), n2 = getVal('sim_no2'), col = getVal('sim_color');
+            const pacS = ((t < 10 ? 6 : (t < 50 ? 14 : 28)) + (fe > 0.3 ? fe * 6 : 0) + (col > 40 ? col/10 : 0)).toFixed(1);
+            let rphS = (ph < 7.2 ? (7.2 - ph) * 20 : 0).toFixed(1);
+            const ayS = (t > 50 || col > 40) ? 1.5 : 0.5;
+
+            latestCaracterization = { turb: t, ph: ph, col: col, fe: fe, alc: alc, n2: n2 };
+            document.getElementById('sim_result_container')?.classList.remove('hidden');
+            
+            setResText('res_sim_pac', pacS); 
+            setResText('res_sim_rph', rphS); 
+            setResText('res_sim_ayudante_sug', ayS.toFixed(1)); 
+            setResText('res_sim_cloro_sug', (1.5 + n2 * 5.2).toFixed(2));
+            calcularCostosSimulacion();
+        }
+
+        function compararJarras() {
+            let jarras = [];
+            for(let i=1; i<=4; i++) {
+                jarras.push({ num: i, pac: getVal('jar_pac_'+i), rph: getVal('jar_rph_'+i), ay: getVal('jar_ay_'+i), turb: getVal('jar_turb_'+i), color: getVal('jar_color_'+i), ph: getVal('jar_ph_'+i) });
+            }
+            let best = jarras.filter(j => j.turb < 1 && j.color < 1).sort((a,b) => a.turb - b.turb)[0] || jarras.sort((a,b) => (a.turb - b.turb) || (a.color - b.color))[0];
+            bestJarInfo = best;
+            setResText('final_best_jar_title', `Vaso 0${best.num}`);
+            setResText('final_best_pac', best.pac.toFixed(1)); setResText('final_best_rph', best.rph.toFixed(1)); setResText('final_best_ay', best.ay.toFixed(1));
+            document.getElementById('best_jar_final_box')?.classList.remove('hidden');
+            
+            setResText('sim_dose_val_s_pac', best.pac.toFixed(1)); 
+            setResText('sim_dose_val_s_alc', best.rph.toFixed(1)); 
+            setResText('sim_dose_val_s_floc', best.ay.toFixed(1));
+            document.getElementById('sim_finance_container')?.classList.remove('hidden');
+            calcularCostosSimulacion();
+            showToast(`✅ Vaso Ganador: 0${best.num}`);
+        }
+
+        // --- HOJA OPERATIVA (AFORO) ---
+        function agregarProductoOps() {
+            const container = document.getElementById('ops_products_container');
+            const rowId = 'prod_row_' + Date.now();
+            const div = document.createElement('div');
+            div.className = "product-row grid grid-cols-1 md:grid-cols-4 gap-4 items-end text-center";
+            div.id = rowId;
+            let options = '';
+            Object.keys(productStock).forEach(k => { if(productStock[k].used) options += `<option value="${k}">${k}</option>`; });
+            if(!options) options = '<option disabled>Active en Stock</option>';
+
+            div.innerHTML = `
+                <div class="text-left text-center"><label class="input-label text-center">Insumo</label><select class="prod-select font-bold text-navy text-center">${options}</select></div>
+                <div><label class="input-label text-center">Aforo Bomba (ml/min)</label><input type="number" class="prod-ml-min text-center" value="0" oninput="recalcularTodaDosisOps()"></div>
+                <div><label class="input-label text-center">% Concentración</label><input type="number" class="prod-conc text-center" value="10" oninput="recalcularTodaDosisOps()"></div>
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-navy text-white p-2 rounded-lg text-center">
+                        <span class="text-[7px] uppercase block">Dosis mg/L</span>
+                        <span class="prod-result font-black">0.00</span><br>
+                        <span class="prod-autonomy text-[8px] text-sky-300 font-bold">Reserva: --</span>
+                    </div>
+                    <button onclick="document.getElementById('${rowId}').remove(); recalcularTodaDosisOps();" class="text-red-500 font-black px-2 hover:bg-red-50 rounded">✕</button>
+                </div>`;
+            container.appendChild(div);
+        }
+
+        function recalcularTodaDosisOps() {
+            const plantFlow = getVal('ops_plant_flow_ref');
+            const dailyM3 = plantFlow * 86.4;
+            document.querySelectorAll('.product-row').forEach(row => {
+                const prodId = row.querySelector('.prod-select').value;
+                const mlMin = parseFloat(row.querySelector('.prod-ml-min').value) || 0;
+                const conc = parseFloat(row.querySelector('.prod-conc').value) || 0;
+                const resSpan = row.querySelector('.prod-result');
+                const autoSpan = row.querySelector('.prod-autonomy');
+                if(plantFlow > 0) {
+                    const dose = (mlMin * conc) / (plantFlow * 6);
+                    resSpan.innerText = dose.toFixed(2);
+                    const stock = productStock[prodId]?.amount || 0;
+                    const days = dose > 0 ? (stock / ((dose * dailyM3) / 1000)) : 0;
+                    autoSpan.innerText = "Reserva: " + (days > 0 ? days.toFixed(1) + " d" : "--");
+                } else { resSpan.innerText = "0.00"; autoSpan.innerText = "Reserva: --"; }
+            });
+        }
+
+        function finalizarDiaOps() {
+            const op = document.getElementById('ops_operator').value; if(!op) return alert("Firma obligatoria.");
+            const dailyM3 = parseFloat(document.getElementById('ops_daily_m3').innerText);
+            document.querySelectorAll('.product-row').forEach(row => {
+                const prod = row.querySelector('.prod-select').value;
+                const dose = parseFloat(row.querySelector('.prod-result').innerText) || 0;
+                productStock[prod].amount -= (dose * dailyM3) / 1000;
+            });
+            const phs = Array.from(document.querySelectorAll('.ops-ph')).map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+            const cls = Array.from(document.querySelectorAll('.ops-cl')).map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+            savedOpsRecords.push({ fecha: new Date().toLocaleDateString(), operador: op, eficiencia: dailyM3.toFixed(2) + " m3", ph: (phs.length ? (phs.reduce((a,b)=>a+b,0)/phs.length).toFixed(2) : "-"), cl: (cls.length ? (cls.reduce((a,b)=>a+b,0)/cls.length).toFixed(2) : "-") });
+            reiniciarPlataforma(); switchView('landing'); showToast("✅ Turno Archivado y Stock Actualizado.");
+        }
+
+        // --- SOPORTE ---
+        function renderOps() {
+            const tb = document.getElementById('ops_tbody'); if(!tb) return;
+            tb.innerHTML = '';
+            ["06:00","10:00","14:00","18:00","22:00","02:00"].forEach(h => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="font-bold text-navy text-center">${h}</td>
+                    <td><input type="number" class="w-16 text-center text-xs ops-caudal" oninput="validarBarrera(this); recalcularEstadisticasHidraulicas()"></td>
+                    <td class="cell-navy"><input type="number" class="w-16 text-xs font-black input-on-navy ops-ph" oninput="validarBarrera(this)"></td>
+                    <td class="cell-navy"><input type="number" class="w-16 text-xs font-black input-on-navy ops-cl" oninput="validarBarrera(this)"></td>
+                    <td><input type="number" class="w-16 text-xs text-center" oninput="validarBarrera(this)"></td>
+                    <td><input type="number" class="w-16 text-xs text-center" oninput="validarBarrera(this)"></td>
+                    <td class="status-cell font-black text-[8px] text-center">-</td>`;
+                tb.appendChild(tr);
+            });
+            initChart();
+        }
+
+        function initChart() {
+            const canvas = document.getElementById('complianceChart'); if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if(opsChart) opsChart.destroy();
+            opsChart = new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [0, 6], backgroundColor: ['#10b981', '#f1f5f9'], borderWidth: 0 }] }, options: { cutout: '80%', plugins: { legend: { display: false } } } });
+        }
+
+        function recalcularEstadisticasHidraulicas() {
+            const inputs = document.querySelectorAll('.ops-caudal');
+            let sum = 0, count = 0;
+            inputs.forEach(i => { const v = parseFloat(i.value); if(!isNaN(v) && v > 0) { sum += v; count++; } });
+            const avgFlow = count > 0 ? (sum / count) : 0;
+            setResText('ops_avg_flow', avgFlow.toFixed(2) + " L/s");
+            setResText('ops_daily_m3', (avgFlow * 86.4).toFixed(2) + " m3");
+            setResText('ops_monthly_m3', (avgFlow * 86.4 * 30).toFixed(2) + " m3");
+            recalcularTodaDosisOps(); 
+        }
+
+        function renderInventorySelection() {
+            const container = document.getElementById('inventory_selection'); if(!container) return;
+            container.innerHTML = '';
+            Object.keys(productStock).forEach(key => {
+                const label = document.createElement('label');
+                label.className = "flex items-center justify-center p-3 bg-slate-50 border rounded-lg cursor-pointer hover:bg-slate-100";
+                label.innerHTML = `<input type="checkbox" class="mr-2" ${productStock[key].used ? 'checked' : ''} onchange="toggleInsumo('${key}', this.checked)"> <span class="text-[9px] font-black text-navy">${key}</span>`;
+                container.appendChild(label);
+            });
+        }
+
+        function renderInventory() {
+            const body = document.getElementById('inventory_body'); if(!body) return;
+            body.innerHTML = '';
+            Object.keys(productStock).forEach(id => {
+                if(!productStock[id].used) return;
+                const autonomy = productStock[id].amount / 50; 
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="text-left font-bold py-4">${id}</td><td><input type="number" class="w-24 text-center font-black" value="${productStock[id].amount.toFixed(2)}" onchange="updateStockManual('${id}', this.value)"></td><td class="italic text-slate-400 text-center">${productStock[id].update}</td><td class="${autonomy < 30 ? 'autonomy-critical' : 'autonomy-safe'} text-center">${autonomy > 0 ? autonomy.toFixed(1) + " días" : "---"}</td><td class="font-black ${autonomy < 30 ? 'text-red-600' : 'text-emerald-600'} text-center">STATUS OK</td>`;
+                body.appendChild(row);
+            });
+        }
+
+        function updateStockManual(id, val) { productStock[id].amount = parseFloat(val) || 0; productStock[id].update = new Date().toLocaleDateString(); renderInventory(); }
+        function toggleInsumo(id, val) { productStock[id].used = val; renderInventory(); }
+
+        function inicializarFinanzas() {
+            const body = document.getElementById('economics_body'); if(!body) return;
+            const items = [{id:'f_pac', name:'PAC', d:'f_dose_pac'},{id:'f_alc', name:'RpH', d:'f_dose_alc'},{id:'f_floc', name:'Ayudante', d:'f_dose_floc'},{id:'f_cloro', name:'Cloro', d:'f_dose_cl'}];
+            body.innerHTML = '';
+            items.forEach(p => { body.innerHTML += `<tr><td class="font-bold py-4 text-left">${p.name}</td><td><input type="number" id="${p.d}" class="w-20 text-center" oninput="calcularCostosTotales()"></td><td><input type="number" id="f_price_${p.id}" class="w-20 text-center" oninput="calcularCostosTotales()"></td><td id="f_kg_${p.id}" class="text-center font-bold">0</td><td id="f_total_${p.id}" class="font-bold text-emerald-600 text-center">$ 0.00</td></tr>`; });
+        }
+
+        function calcularCostosTotales() {
+            let total = 0; const f = getVal('plant_flow') || 10; const v = f * 86.4 * 30;
+            const items = [{id:'f_pac', d:'f_dose_pac'},{id:'f_alc', d:'f_dose_alc'},{id:'f_floc', d:'f_dose_floc'},{id:'f_cloro', d:'f_dose_cl'}];
+            items.forEach(p => {
+                const dose = getVal(p.d); const price = getVal('f_price_'+p.id);
+                const kg = (dose * v) / 1000; const cost = kg * price;
+                setResText('f_kg_'+p.id, kg.toFixed(1)); setResText('f_total_'+p.id, "$ " + cost.toLocaleString('en-US',{minimumFractionDigits:2}));
+                total += cost;
+            });
+            setResText('fin_mes_total', "$ " + total.toLocaleString('en-US',{minimumFractionDigits:2})); setResText('fin_cost_m3', (total/v).toFixed(4));
+        }
+
+        function inicializarFinanzasSim() {
+            const body = document.getElementById('sim_economics_body'); if(!body) return;
+            const items = [{id:'s_pac', name:'PAC'},{id:'s_alc', name:'RpH'},{id:'s_floc', name:'Ayudante'},{id:'s_cloro', name:'Cloro'}];
+            body.innerHTML = '';
+            items.forEach(p => {
+                body.innerHTML += `<tr><td class="font-bold py-4 text-left text-center">${p.name}</td><td id="sim_dose_val_${p.id}" class="text-center font-black">0.0</td><td><input type="number" id="sim_price_${p.id}" class="w-24 text-center" oninput="calcularCostosSimulacion()"></td><td id="sim_kg_${p.id}" class="text-center font-bold">0</td><td id="sim_total_${p.id}" class="font-bold text-pink-600 text-center">$ 0.00</td></tr>`;
+            });
+        }
+
+        function calcularCostosSimulacion() {
+            const f = getVal('plant_flow'), v = f * 86.4 * 30; if(!v || v === 0) return;
+            let total = 0; ['s_pac', 's_alc', 's_floc', 's_cloro'].forEach(id => {
+                const dEl = document.getElementById('sim_dose_val_'+id);
+                if(dEl) {
+                    const dose = parseFloat(dEl.innerText) || 0;
+                    const kg = (dose * v) / 1000; const cost = kg * getVal('sim_price_'+id);
+                    setResText('sim_kg_'+id, kg.toFixed(1)); setResText('sim_total_'+id, "$ " + cost.toLocaleString('en-US',{minimumFractionDigits:2})); total += cost;
+                }
+            });
+            setResText('sim_mes_total', "$ " + total.toLocaleString('en-US',{minimumFractionDigits:2})); setResText('sim_cost_m3', (total/v).toFixed(4));
+        }
+
+        function calcularBalanceCloro() {
+            const app = getVal('cl_applied'), meas = getVal('cl_measured'), tar = getVal('cl_target');
+            const dem = Math.max(0, app - meas), dose = dem + tar;
+            setResText('cl_res_demand', dem.toFixed(2)); setResText('cl_res_dose', dose.toFixed(2));
+            setResText('sim_dose_val_s_cloro', dose.toFixed(2));
+            calcularCostosSimulacion();
+        }
+
+        function actualizarHidraulica() { 
+            const f = getVal('plant_flow');
+            setResText('val_flow_d', (f * 86.4).toFixed(2) + " m3/día"); 
+            calcularCostosSimulacion(); 
+        }
+
+        function emitirYGuardar() {
+            const org = document.getElementById('repo_org').value; if(!org) return alert("Complete los datos de la Entidad.");
+            const dataToSave = {
+                fecha: new Date().toLocaleString(), org: org, sample: document.getElementById('repo_sample').value || 'S/N', caudal: getVal('plant_flow'), carac: {...latestCaracterization}, jarra: {...bestJarInfo}, costm3: document.getElementById('sim_cost_m3')?.innerText || "0.00", total: document.getElementById('sim_mes_total')?.innerText || "$ 0.00", rows: []
+            };
+            ['s_pac','s_alc','s_floc','s_cloro'].forEach(id => {
+                const dEl = document.getElementById('sim_dose_val_'+id);
+                if(dEl) dataToSave.rows.push({ name: id.replace('s_','').toUpperCase(), dose: dEl.innerText, total: document.getElementById('sim_total_'+id)?.innerText || "$ 0.00" });
+            });
+            savedDesignRecords.push(dataToSave);
+            generarInformeBase(dataToSave); 
+            reiniciarPlataforma();
+            showToast("✅ Diseño Archivado.");
+        }
+
+        function renderLog() {
+            const d = document.getElementById('log_design_tbody'); if(d) { d.innerHTML = ''; savedDesignRecords.forEach((r, i) => { d.innerHTML += `<tr><td>${r.fecha}</td><td>${r.org}</td><td>${r.caudal} L/s</td><td>Vaso 0${r.jarra.num}</td><td>${r.costm3}</td><td><button onclick="verReporteHistorico(${i})" class="btn-view-report text-center text-center">👁️ Ver</button></td></tr>`; }); }
+            const o = document.getElementById('log_ops_tbody'); if(o) { o.innerHTML = ''; savedOpsRecords.forEach(r => { o.innerHTML += `<tr><td>${r.fecha}</td><td class="font-bold text-center">${r.operador}</td><td class="text-center">${r.eficiencia}</td><td class="text-center">${r.ph}</td><td class="text-center">${r.cl}</td><td class="text-center">GUARDADO</td></tr>`; }); }
+        }
+
+        function showLogTab(t) {
+            ['design','ops'].forEach(id => { document.getElementById('log_'+id+'_container').classList.add('hidden'); document.getElementById('tab_btn_'+id).className = "tab-btn tab-inactive"; });
+            document.getElementById('log_'+t+'_container').classList.remove('hidden'); document.getElementById('tab_btn_'+t).className = "tab-btn tab-active";
+        }
+
+        function generarInformeBase(data) {
+            const win = window.open('', '_blank');
+            const vM = data.caudal * 86.4 * 30;
+            let rowsHtml = '';
+            data.rows.forEach(r => { rowsHtml += `<tr><td><b>${r.name}</b></td><td>${r.dose} mg/L</td><td>${((parseFloat(r.dose)*vM)/1000).toLocaleString('es-ES')} kg</td><td>${r.total}</td></tr>`; });
+            win.document.write(`<html><head><style>body{font-family:sans-serif;padding:40px;color:#0a192f;font-size:12px} .report-container{max-width:850px;margin:auto;border:2px solid #0a192f;padding:40px;border-radius:10px} table{width:100%;border-collapse:collapse;margin:20px 0} th{background:#0a192f;color:#fff;padding:10px} td{padding:12px;border:1px solid #edf2f7;text-align:center} .header-box{background:#f1f5f9;padding:20px;border-radius:8px;margin-bottom:20px} .footer-summary{background:#0a192f;color:#fff;padding:25px;border-radius:10px;display:flex;justify-content:space-between;align-items:center} .carac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}</style></head><body><div class="report-container"><h1>MEMORIA TÉCNICA DE OPTIMIZACIÓN (INEN 1108)</h1><div class="header-box"><b>ENTIDAD:</b> ${data.org}<br><b>TOMA / CAPTACIÓN:</b> ${data.sample}<br><b>FECHA:</b> ${data.fecha}<br><b>CAUDAL DE DISEÑO:</b> ${data.caudal} L/s (${(data.caudal*86.4).toFixed(2)} m3/día)</div><h3>I. CARACTERIZACIÓN DEL AGUA CRUDA</h3><div class="carac-grid"><div>Turbiedad: <b>${data.carac.turb} NTU</b></div><div>pH Crudo: <b>${data.carac.ph}</b></div><div>Color: <b>${data.carac.col} UC</b></div><div>Hierro: <b>${data.carac.fe} mg/L</b></div><div>Alcalinidad: <b>${data.carac.alc} mg/L</b></div><div>Nitritos: <b>${data.carac.n2} mg/L</b></div></div><h3>II. VALIDACIÓN TÉCNICA (VASO GANADOR 0${data.jarra.num})</h3><div style="background:#dcfce7; padding:15px; border-radius:8px; color:#166534; margin-bottom:20px"><b>PARÁMETROS LOGRADOS:</b> Turb: ${data.jarra.turb} NTU | Col: ${data.jarra.color} UC | pH: ${data.jarra.ph}<br><b>DOSIS APLICADAS:</b> PAC: ${data.jarra.pac} mg/L | RpH: ${data.jarra.rph} mg/L | Ayudante: ${data.jarra.ay} mg/L</div><h3>III. PARAMETRIZACIÓN DE INSUMOS</h3><table><thead><tr><th>INSUMO</th><th>DOSIS META</th><th>CONSUMO MENSUAL (KG)</th><th>GASTO PROYECTADO</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer-summary"><div>COSTO UNITARIO ESTIMADO: <h3>${data.costm3} USD/m3</h3></div><div>INVERSIÓN MENSUAL TOTAL: <h3>${data.total}</h3></div></div><div style="margin-top:50px;text-align:center;border-top:1px solid #eee;padding-top:20px"><b>FIRMA RESPONSABLE: SERVICIOS PROFESIONALES TERA</b></div></div><script>window.print();<\/script></body></html>`);
+            win.document.close();
+        }
+
+        function reiniciarPlataforma() {
+            document.querySelectorAll('input:not([onchange]):not(.w-24)').forEach(i => { if(i.type === 'number') i.value = 0; else i.value = ''; });
+            document.getElementById('ops_products_container').innerHTML = '';
+            agregarProductoOps(); 
+            const tb = document.getElementById('ops_tbody'); if(tb) tb.innerHTML = '';
+            renderOps();
+            setResText('ops_avg_flow', "0.00 L/s"); setResText('ops_daily_m3', "0.00 m3"); setResText('ops_monthly_m3', "0.00 m3");
+            ['sim_result_container', 'sim_finance_container', 'best_jar_final_box'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
+            switchView('landing');
+        }
+
+        function exportarExcel() {
+            let csv = "FECHA,OPERADOR,VOL_DIA,PH,CLORO\n";
+            savedOpsRecords.forEach(r => { csv += `"${r.fecha}","${r.operador}","${r.eficiencia}","${r.ph}","${r.cl}"\n`; });
+            const blob = new Blob(["\ufeff", csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Bitacora_PTAP.csv"; link.click();
+        }
+
+        function validarBarrera(input) {
+            const row = input.closest('tr'), inps = row.querySelectorAll('input'), pH = parseFloat(inps[1].value), cl = parseFloat(inps[2].value), cell = row.querySelector('.status-cell');
+            if(isNaN(pH) || isNaN(cl)) cell.innerHTML = "-";
+            else if(pH >= 6.5 && pH <= 8.5 && cl >= 1.0) cell.innerHTML = '<span class="barrier-ok">OK</span>';
+            else cell.innerHTML = '<span class="barrier-fail">FAIL</span>';
+            const success = Array.from(document.querySelectorAll('.status-cell')).filter(c => c.innerText === 'OK').length;
+            setResText('complianceText', `Cumplimiento: ${((success/6)*100).toFixed(0)}%`);
+            if(opsChart) { opsChart.data.datasets[0].data = [success, 6-success]; opsChart.update(); }
+        }
+    </script>
+</body>
+</html>

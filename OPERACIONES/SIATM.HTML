@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consola de Gestión PTAP - Ingeniería Química</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy-blue: #000040;
+            --navy-light: #001f3f;
+            --accent-cyan: #00d4ff;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --gold-comercial: #d4af37;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding-bottom: 140px; 
+        }
+        .bg-navy { background-color: var(--navy-blue); }
+        .text-navy { color: var(--navy-blue); }
+        
+        .tab-active {
+            border-bottom: 4px solid var(--navy-blue);
+            color: var(--navy-blue);
+            font-weight: 800;
+            opacity: 1 !important;
+        }
+
+        input, select, textarea {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #1e293b !important;
+            transition: all 0.2s ease;
+            border-radius: 0.75rem !important;
+        }
+        input:focus { border-color: var(--navy-blue) !important; outline: none; box-shadow: 0 0 0 4px rgba(0,0,64,0.08); }
+
+        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04); }
+
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #e2e8f0;
+            padding: 1.25rem;
+            z-index: 100;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-dot { 
+            width: 14px;
+            height: 14px;
+            border-radius: 9999px;
+            background-color: #e2e8f0;
+            transition: all 0.3s ease; 
+        }
+
+        .ai-loading {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(90deg, #4f46e5, #9333ea);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        @media print { .no-print { display: none !important; } body { padding-bottom: 0; } }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="statusMessage" class="fixed bottom-32 right-6 z-[1000] hidden bg-navy text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/20 animate-pulse">
+        <span id="statusText" class="font-bold uppercase text-xs tracking-widest text-center">Mensaje</span>
+    </div>
+
+    <!-- Cabecera -->
+    <header class="bg-navy p-10 md:p-14 text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="flex flex-wrap items-center gap-4 mb-4">
+                <span class="bg-white/10 text-[10px] font-black px-4 py-1.5 rounded-full tracking-[0.2em] uppercase border border-white/20">SERVICIOS PROFESIONALES TERA</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+                Sistema Inteligente de Asistencia Técnica Multicliente
+            </h1>
+            <p class="text-blue-200 mt-3 text-lg font-light italic opacity-70">Gestión Potabilización y Suministros.</p>
+        </div>
+        <div class="absolute right-[-80px] top-[-80px] opacity-10 pointer-events-none scale-150">
+            <svg width="400" height="400" viewBox="0 0 24 24" fill="white"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
+        </div>
+    </header>
+
+    <!-- Navegación -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto flex justify-center md:justify-start overflow-x-auto">
+            <button onclick="window.switchTab('recoleccion')" id="tab-recoleccion" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] tab-active whitespace-nowrap">Captura Técnica</button>
+            <button onclick="window.switchTab('comercial')" id="tab-comercial" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] opacity-40 whitespace-nowrap">Gestión Comercial</button>
+            <button onclick="window.switchTab('historial')" id="tab-historial" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] opacity-40 whitespace-nowrap">Archivo Central</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 md:p-10">
+        <form id="visitaForm" class="space-y-12">
+            
+            <!-- SECCIÓN TÉCNICA -->
+            <div id="section-recoleccion" class="space-y-10 block animate-in fade-in slide-in-from-bottom-4">
+                
+                <!-- 01. Identificación -->
+                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-900/20">01</div>
+                            <h3 class="text-navy text-sm font-black uppercase tracking-widest">Identificación del Cliente</h3>
+                        </div>
+                        <select id="tipoCliente" class="p-3 rounded-xl font-black border-2 border-navy text-navy text-xs uppercase" onchange="window.handleClientTypeChange(this.value)">
+                            <option value="CARTERA">CLIENTE ACTIVO</option>
+                            <option value="POTENCIAL">PROSPECTO POTENCIAL</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="md:col-span-3">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Institución / Empresa / GAD</label>
+                            <input type="text" id="organizacion" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="Nombre completo">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Teléfono / WhatsApp</label>
+                            <input type="text" id="telefono" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="Ej: 0998887766">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Correo Electrónico</label>
+                            <input type="email" id="correo" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="cliente@entidad.com">
+                        </div>
+                        <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Gerente / Responsable</label><input type="text" id="autoridad" class="w-full p-4 rounded-xl"></div>
+                        <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Técnico en Planta</label><input type="text" id="tecnicoPlanta" class="w-full p-4 rounded-xl"></div>
+                        
+                        <div class="md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100 mt-2">
+                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Provincia</label><input type="text" id="provincia" class="w-full p-4 rounded-xl"></div>
+                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Cantón / Ciudad</label><input type="text" id="canton" class="w-full p-4 rounded-xl"></div>
+                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Caudal (L/s)</label><input type="number" id="caudal" step="0.01" class="w-full p-4 rounded-xl font-black text-navy border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Horas Op/Día</label><input type="number" id="horasOpPlanta" step="0.5" value="24" class="w-full p-4 rounded-xl font-black border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 02. Protocolo INEN 1108 -->
+                <section id="tech-analysis-section" class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center gap-4">
+                        <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">02</div>
+                        <h3 class="text-navy text-sm font-black uppercase tracking-widest">Protocolo Analítico INEN 1108</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
+                                    <th class="p-6 text-left">Parámetro Técnico</th>
+                                    <th class="p-6 text-center">Agua Cruda</th>
+                                    <th class="p-6 text-center">Agua Tratada</th>
+                                    <th class="p-6 text-left">Validación Norma</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="paramTable"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="compliance-visual-panel" class="mt-10 p-8 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div class="flex-1">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Indicador de Cumplimiento Global</h4>
+                            <p class="text-xs text-slate-500 font-medium italic">Evaluación porcentual instantánea contra límites máximos permitidos.</p>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="text-right">
+                                <div id="realtime-percent" class="text-5xl font-black text-navy leading-none tracking-tighter">100%</div>
+                                <div id="realtime-tag" class="text-[9px] font-black uppercase text-success-green mt-1">Nivel Óptimo</div>
+                            </div>
+                            <div class="w-20 h-20 relative flex items-center justify-center">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="40" cy="40" r="34" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-200" />
+                                    <circle id="compliance-circle" cx="40" cy="40" r="34" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="213.6" stroke-dashoffset="0" class="text-navy transition-all duration-1000 ease-out" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 03. Ingeniería de Dosificación -->
+                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center gap-4">
+                        <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">03</div>
+                        <h3 class="text-navy text-sm font-black uppercase tracking-widest">Ingeniería de Procesos y Stock</h3>
+                    </div>
+                    <div id="dosageContainer" class="space-y-4">
+                        <div class="dosage-row grid grid-cols-1 md:grid-cols-6 gap-6 p-8 bg-slate-50 rounded-[2rem] border border-slate-200 relative shadow-inner">
+                            <div class="md:col-span-2">
+                                <label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Insumo Químico</label>
+                                <select class="w-full p-4 rounded-xl text-xs product-select font-black border-slate-200 uppercase">
+                                    <option value="PAC">PAC (Policloruro de Aluminio)</option>
+                                    <option value="Sulfato de Aluminio">Sulfato de Aluminio</option>
+                                    <option value="Hipoclorito de Sodio">Hipoclorito de Sodio</option>
+                                    <option value="Cloro Gas">Cloro Gas</option>
+                                    <option value="Floculante">Polímero Floculante</option>
+                                    <option value="Regulador pH">Regulador de pH</option>
+                                </select>
+                            </div>
+                            <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">mL/min</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs pump-flow font-bold" oninput="window.calculateDoseAndStock()"></div>
+                            <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Conc (%)</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs conc-pct font-bold" oninput="window.calculateDoseAndStock()"></div>
+                            <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Stock (Kg)</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs current-stock font-bold" oninput="window.calculateDoseAndStock()"></div>
+                            <div class="bg-navy rounded-2xl p-4 text-white text-center flex flex-col justify-center shadow-xl">
+                                <p class="text-[10px] font-bold uppercase opacity-50">Dosis mg/L</p>
+                                <p class="text-2xl font-black leading-none"><span class="dosage-result">0.00</span></p>
+                                <p class="text-[10px] text-cyan-400 font-black uppercase mt-2">Días: <span class="autonomy-result">---</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.addProductRow()" class="mt-6 text-navy text-[10px] font-black uppercase tracking-widest hover:underline">+ Adicionar Fila Operativa</button>
+                </section>
+
+                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">04</div>
+                            <h3 class="text-navy text-sm font-black uppercase tracking-widest">Observaciones de Ingeniería</h3>
+                        </div>
+                        <button type="button" onclick="window.askAI('technical')" id="ai-btn-tech" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg hover:shadow-indigo-500/40 transition-all active:scale-95 group">
+                            <span class="group-hover:animate-spin">✨</span> 
+                            <span id="ai-btn-tech-text">Diagnóstico</span>
+                        </button>
+                    </div>
+                    <textarea id="observaciones" rows="4" class="w-full p-6 rounded-2xl text-sm" placeholder="Hallazgos técnicos y recomendaciones de operación..."></textarea>
+                </section>
+            </div>
+
+            <!-- SECCIÓN COMERCIAL -->
+            <div id="section-comercial" class="hidden space-y-10 animate-in fade-in">
+                <section class="bg-white p-10 rounded-[2.5rem] border-l-[15px] border-gold-comercial card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8 flex justify-between items-center">
+                        <h3 class="text-navy text-sm font-black uppercase tracking-widest text-gold-comercial">Análisis de Mercado</h3>
+                        <button type="button" onclick="window.askAI('commercial')" id="ai-btn-com" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg hover:shadow-orange-500/40 transition-all active:scale-95 group">
+                            <span class="group-hover:animate-spin">✨</span> 
+                            <span id="ai-btn-com-text">Estrategia</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase mb-4 tracking-widest">Productos que consumen actualmente:</label>
+                            <div class="grid grid-cols-1 gap-3" id="currentProductsContainer">
+                                <label class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm cursor-pointer border border-transparent hover:border-navy transition-all">
+                                    <span class="text-xs font-bold text-slate-700">Coagulantes (PAC/Sulfato)</span>
+                                    <input type="checkbox" class="market-product-check w-5 h-5 rounded text-navy" data-product="Coagulantes">
+                                </label>
+                                <label class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm cursor-pointer border border-transparent hover:border-navy transition-all">
+                                    <span class="text-xs font-bold text-slate-700">Desinfectantes (Cloro/Hipoclorito)</span>
+                                    <input type="checkbox" class="market-product-check w-5 h-5 rounded text-navy" data-product="Desinfectantes">
+                                </label>
+                                <label class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm cursor-pointer border border-transparent hover:border-navy transition-all">
+                                    <span class="text-xs font-bold text-slate-700">Polímeros / Floculantes</span>
+                                    <input type="checkbox" class="market-product-check w-5 h-5 rounded text-navy" data-product="Floculantes">
+                                </label>
+                                <label class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm cursor-pointer border border-transparent hover:border-navy transition-all">
+                                    <span class="text-xs font-bold text-slate-700">Ajuste de pH (Cal/Soda)</span>
+                                    <input type="checkbox" class="market-product-check w-5 h-5 rounded text-navy" data-product="Ajuste pH">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Proveedor Actual de la Competencia</label><input type="text" id="com_proveedor" class="w-full p-4 rounded-xl border-slate-200 font-bold uppercase" placeholder="Nombre de la empresa"></div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Modalidad de Adquisición</label>
+                                <select id="com_adquisicion" class="w-full p-4 rounded-xl font-bold">
+                                    <option value="Compra Directa">Compra Directa</option>
+                                    <option value="Portal Compras">Portal de Compras Públicas (SERCOP)</option>
+                                    <option value="Licitación">Licitación de Suministros</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Tipo de Contratación</label>
+                                <select id="com_contratacion" class="w-full p-4 rounded-xl font-bold">
+                                    <option value="Ínfima Cuantía">Ínfima Cuantía</option>
+                                    <option value="Subasta Inversa">Subasta Inversa Electrónica</option>
+                                    <option value="Menor Cuantía">Menor Cuantía</option>
+                                </select>
+                            </div>
+                            <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Fecha Próxima Compra</label><input type="date" id="com_fecha_compra" class="w-full p-4 rounded-xl font-bold"></div>
+                        </div>
+                        
+                        <div class="md:col-span-2 pt-6 border-t border-slate-100">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Comentarios y Sugerencia IA</label>
+                            <textarea id="com_comentarios" rows="3" class="w-full p-5 rounded-2xl text-sm border-gold-comercial/30 font-medium" placeholder="Estrategia de negociación..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- COTIZADOR -->
+                <section id="cotizacion-section" class="bg-white p-10 rounded-[2.5rem] border-l-[15px] border-success-green card-shadow">
+                    <div class="border-b border-slate-100 pb-6 mb-8">
+                        <h3 class="text-navy text-sm font-black uppercase tracking-widest text-success-green">Generador de Propuesta Económica</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs" id="quoteTable">
+                            <thead>
+                                <tr class="text-slate-400 uppercase font-black border-b text-left">
+                                    <th class="p-4">Descripción del Insumo Optimizado</th>
+                                    <th class="p-4 text-center">Cant. Propuesta</th>
+                                    <th class="p-4 text-center">P. Unitario ($)</th>
+                                    <th class="p-4 text-right">Subtotal</th>
+                                    <th class="p-4 text-center w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="quoteBody" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" onclick="window.addQuoteRow()" class="mt-6 text-[10px] font-black uppercase text-success-green hover:underline tracking-widest">+ Proponer Nuevo Item</button>
+                    
+                    <div class="mt-12 flex justify-end">
+                        <div class="w-80 space-y-4 p-8 bg-slate-50 rounded-[2rem] border border-slate-200">
+                            <div class="flex justify-between text-xs font-bold uppercase tracking-widest"><span>Subtotal:</span><span id="quoteSubtotal">$0.00</span></div>
+                            <div class="flex justify-between text-xs text-slate-500 font-bold uppercase tracking-widest"><span>IVA (15%):</span><span id="quoteTax">$0.00</span></div>
+                            <div class="flex justify-between text-2xl text-navy font-black border-t-2 border-navy/20 pt-4 mt-2"><span>TOTAL:</span><span id="quoteTotal">$0.00</span></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </main>
+
+    <!-- Barra de Acción Global -->
+    <div class="action-bar no-print">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center text-white shadow-xl rotate-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <p id="footer-client-tag" class="text-[11px] font-black uppercase text-navy tracking-[0.3em]">Cliente de Cartera Activo</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Seguimiento de Ingeniería Terminado.</p>
+                </div>
+            </div>
+            <button type="button" onclick="window.handleFinalizeReport()" class="w-full md:w-auto bg-navy text-white px-20 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.4em] hover:bg-slate-800 shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 border-b-4 border-black">
+                Finalizar y Generar Documentos
+            </button>
+        </div>
+    </div>
+
+    <!-- PESTAÑA HISTORIAL -->
+    <div id="section-historial" class="hidden max-w-7xl mx-auto p-10 space-y-16 animate-in fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div>
+                <h2 class="text-4xl font-black text-navy uppercase tracking-tighter leading-none">Archivo Central</h2>
+                <p class="text-slate-400 font-black uppercase text-[10px] tracking-[0.3em] mt-3">Base de datos de gestión técnica y prospectos.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="window.exportExcel('CARTERA')" class="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-blue-700 transition shadow-xl tracking-widest">Excel Cartera Técnica</button>
+                <button onclick="window.exportExcel('POTENCIAL')" class="bg-amber-500 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-amber-600 transition shadow-xl tracking-widest">Excel Prospectos</button>
+            </div>
+        </div>
+
+        <div class="space-y-14">
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase mb-6 border-b pb-4 flex items-center gap-3"><span class="w-4 h-4 bg-blue-500 rounded-full shadow-lg"></span> Cartera de Clientes (Seguimiento Técnico)</h3>
+                <div class="bg-white rounded-[3rem] shadow-xl border border-slate-200 overflow-hidden overflow-x-auto">
+                    <table class="w-full text-left min-w-[900px]">
+                        <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
+                            <tr><th class="p-8">Fecha</th><th class="p-8">Institución</th><th class="p-8">Ubicación</th><th class="p-8 text-center">Cumplimiento %</th><th class="p-8 text-center">Gestión</th></tr>
+                        </thead>
+                        <tbody id="carteraBody" class="text-sm divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[11px] font-black text-gold-comercial uppercase mb-6 border-b border-gold-comercial/30 pb-4 flex items-center gap-3"><span class="w-4 h-4 bg-gold-comercial rounded-full shadow-lg"></span> Pipeline Comercial (Ventas)</h3>
+                <div class="bg-white rounded-[3rem] shadow-xl border border-slate-200 overflow-hidden overflow-x-auto">
+                    <table class="w-full text-left min-w-[900px]">
+                        <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
+                            <tr><th class="p-8">Fecha</th><th class="p-8">Prospecto</th><th class="p-8">Provincia</th><th class="p-8 text-center">Total Ofertado</th><th class="p-8 text-center">Gestión</th></tr>
+                        </thead>
+                        <tbody id="prospectosBody" class="text-sm divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // CONFIGURACIÓN DE FIREBASE
+        const myCustomConfig = {
+          apiKey: "AIzaSyAtg3Hc9VHKSSerEjpgGdA9A3H84H7YXG4",
+          authDomain: "app-visitas-tecnicas.firebaseapp.com",
+          projectId: "app-visitas-tecnicas",
+          storageBucket: "app-visitas-tecnicas.firebasestorage.app",
+          messagingSenderId: "6156373388",
+          appId: "1:6156373388:web:39800846069bb0b9255aa9"
+        }; 
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'app-ptap-v14-gemini';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myCustomConfig;
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let records = [];
+        const geminiApiKey = ""; // Se inyecta en el entorno
+
+        const PARAM_LIST = [
+            { name: "Turbiedad", limit: 5, unit: "UNT" },
+            { name: "Color Verdadero", limit: 15, unit: "UPC" },
+            { name: "pH", limit: 8.5, unit: "U. pH", min: 6.5 },
+            { name: "Alcalinidad", limit: 200, unit: "mg/L" },
+            { name: "Cloro Residual", limit: 1.5, unit: "mg/L", min: 0.3 },
+            { name: "Hierro (Fe)", limit: 0.3, unit: "mg/L" },
+            { name: "Manganeso (Mn)", limit: 0.1, unit: "mg/L" },
+            { name: "Cobre (Cu)", limit: 2.0, unit: "mg/L" },
+            { name: "Sulfatos (SO4)", limit: 250, unit: "mg/L" },
+            { name: "Fosfatos (PO4)", limit: 0.5, unit: "mg/L" },
+            { name: "Nitritos (NO2)", limit: 3.0, unit: "mg/L" },
+            { name: "Nitratos (NO3)", limit: 50.0, unit: "mg/L" }
+        ];
+
+        // --- FUNCIONES IA (GEMINI) ---
+
+        window.askAI = async (mode) => {
+            const btn = mode === 'technical' ? document.getElementById('ai-btn-tech') : document.getElementById('ai-btn-com');
+            const btnText = mode === 'technical' ? document.getElementById('ai-btn-tech-text') : document.getElementById('ai-btn-com-text');
+            const target = mode === 'technical' ? document.getElementById('observaciones') : document.getElementById('com_comentarios');
+            
+            if (!target) return;
+            
+            btn.disabled = true;
+            btn.classList.add('ai-loading');
+            const originalText = btnText.innerText;
+            btnText.innerText = "Procesando...";
+
+            try {
+                let prompt = "";
+                let systemInstruction = "Eres un consultor experto senior en ingeniería química y tratamiento de agua potable en Ecuador. Tus respuestas deben ser técnicas, profesionales y orientadas a la optimización de procesos. No menciones la palabra TERA.";
+                
+                if (mode === 'technical') {
+                    const params = Array.from(document.querySelectorAll('.param-row')).map(row => ({
+                        name: row.getAttribute('data-name'),
+                        raw: row.querySelector('.raw-val').value,
+                        treated: row.querySelector('.treated-val').value,
+                        limit: row.getAttribute('data-limit')
+                    })).filter(p => p.treated !== "");
+                    
+                    const doses = Array.from(document.querySelectorAll('.dosage-row')).map(row => ({
+                        product: row.querySelector('.product-select').value,
+                        dose: row.querySelector('.dosage-result').innerText
+                    }));
+
+                    const compliance = document.getElementById('realtime-percent').innerText;
+
+                    prompt = `Analiza los siguientes datos de una planta de tratamiento:
+                    Parámetros (Norma INEN 1108): ${JSON.stringify(params)}
+                    Régimen de dosificación actual: ${JSON.stringify(doses)}
+                    Nivel de cumplimiento global: ${compliance}
+                    
+                    Por favor, proporciona un diagnóstico técnico corto (máximo 120 palabras) y sugiere ajustes específicos en la dosificación si hay desviaciones.`;
+                } else {
+                    const competitor = document.getElementById('com_proveedor').value;
+                    const contract = document.getElementById('com_contratacion').value;
+                    const products = Array.from(document.querySelectorAll('.market-product-check:checked')).map(cb => cb.getAttribute('data-product'));
+                    const comments = document.getElementById('com_comentarios').value;
+                    
+                    prompt = `Desarrolla una estrategia de ventas flash basada en:
+                    Competencia actual: ${competitor}
+                    Modalidad de compra: ${contract}
+                    Productos que consumen: ${products.join(', ')}
+                    Contexto adicional: ${comments}
+                    
+                    Genera 3 puntos clave de negociación resaltando eficiencia técnica y valor agregado profesional. Máximo 100 palabras.`;
+                    systemInstruction = "Eres un estratega comercial experto en el sector industrial químico de Ecuador. Tu objetivo es ayudar al vendedor a cerrar la cuenta con argumentos técnicos de peso.";
+                }
+
+                const response = await callGeminiAPI(prompt, systemInstruction);
+                target.value += (target.value ? "\n\n" : "") + "--- ANÁLISIS INTELIGENTE ✨ ---\n" + response;
+                window.showToast("Análisis completado con éxito.");
+            } catch (error) {
+                console.error(error);
+                window.showToast("No se pudo conectar con la IA en este momento.");
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('ai-loading');
+                btnText.innerText = originalText;
+            }
+        };
+
+        const callGeminiAPI = async (prompt, systemInstruction, retryCount = 0) => {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429 && retryCount < 5) { // Rate limit
+                        const delay = Math.pow(2, retryCount) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return callGeminiAPI(prompt, systemInstruction, retryCount + 1);
+                    }
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Respuesta no generada.";
+            } catch (err) {
+                throw err;
+            }
+        };
+
+        // --- FUNCIONES CORE ---
+
+        window.showToast = (msg) => {
+            const el = document.getElementById('statusMessage');
+            const text = document.getElementById('statusText');
+            if (el && text) {
+                text.innerText = msg;
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 5000);
+            }
+        };
+
+        window.initParams = () => {
+            const tbody = document.getElementById('paramTable');
+            if (!tbody) return;
+            tbody.innerHTML = PARAM_LIST.map(p => `
+                <tr class="param-row" data-name="${p.name}" data-limit="${p.limit}" data-min="${p.min || 0}">
+                    <td class="p-6 font-black text-[11px] text-navy uppercase tracking-tighter">${p.name} <span class="text-[9px] text-slate-400 font-bold">(${p.unit})</span></td>
+                    <td class="p-6 text-center"><input type="number" step="0.01" class="w-24 p-2 rounded-xl raw-val text-center border-slate-200"></td>
+                    <td class="p-6 text-center"><input type="number" step="0.01" class="w-24 p-2 rounded-xl treated-val text-center font-black border-slate-200"></td>
+                    <td class="p-6"><div class="flex items-center gap-4"><span class="text-[10px] text-slate-400 font-black tracking-widest">INEN: ${p.limit}</span><div class="status-dot shadow-sm"></div></div></td>
+                </tr>`).join('');
+            
+            document.querySelectorAll('.treated-val').forEach((el) => {
+                el.oninput = () => {
+                    const val = parseFloat(el.value);
+                    const row = el.closest('tr');
+                    const limit = parseFloat(row.getAttribute('data-limit'));
+                    const min = parseFloat(row.getAttribute('data-min'));
+                    const dot = row.querySelector('.status-dot');
+                    
+                    if(isNaN(val)) {
+                        dot.style.backgroundColor = '#e2e8f0';
+                        dot.style.boxShadow = 'none';
+                    } else {
+                        const ok = (val <= limit && val >= min);
+                        if(ok) {
+                            dot.style.backgroundColor = '#10b981';
+                            dot.style.boxShadow = '0 0 10px #10b981';
+                        } else {
+                            dot.style.backgroundColor = '#ef4444';
+                            dot.style.boxShadow = '0 0 10px #ef4444';
+                        }
+                    }
+                    window.updateRealtimeCompliance();
+                };
+            });
+        };
+
+        window.updateRealtimeCompliance = () => {
+            const dots = Array.from(document.querySelectorAll('.status-dot'));
+            const filled = dots.filter(d => d.style.backgroundColor !== '' && d.style.backgroundColor !== 'rgb(226, 232, 240)');
+            const ok = filled.filter(d => d.style.backgroundColor === 'rgb(16, 185, 129)');
+            
+            const perc = filled.length > 0 ? ((ok.length / filled.length) * 100).toFixed(0) : 100;
+            const elPercent = document.getElementById('realtime-percent');
+            const elTag = document.getElementById('realtime-tag');
+            const elCircle = document.getElementById('compliance-circle');
+
+            if(elPercent) elPercent.innerText = perc + '%';
+            if(elTag) {
+                if(perc >= 90) { elTag.innerText = "NIVEL ÓPTIMO"; elTag.className = "text-[9px] font-black uppercase text-success-green mt-1"; }
+                else if(perc >= 70) { elTag.innerText = "NIVEL ALERTA"; elTag.className = "text-[9px] font-black uppercase text-amber-500 mt-1"; }
+                else { elTag.innerText = "NIVEL CRÍTICO"; elTag.className = "text-[9px] font-black uppercase text-danger-red mt-1"; }
+            }
+            if(elCircle) {
+                const offset = 213.6 - (213.6 * perc / 100);
+                elCircle.style.strokeDashoffset = offset;
+            }
+        };
+
+        window.calculateDoseAndStock = () => {
+            const flow = parseFloat(document.getElementById('caudal')?.value) || 0;
+            const hours = parseFloat(document.getElementById('horasOpPlanta')?.value) || 0;
+            
+            document.querySelectorAll('.dosage-row').forEach(row => {
+                const mlMin = parseFloat(row.querySelector('.pump-flow')?.value) || 0;
+                const concPct = parseFloat(row.querySelector('.conc-pct')?.value) || 0;
+                const stockKg = parseFloat(row.querySelector('.current-stock')?.value) || 0;
+                const resDose = row.querySelector('.dosage-result');
+                const resAuton = row.querySelector('.autonomy-result');
+
+                if (flow > 0 && mlMin > 0 && concPct > 0) {
+                    const dose = (mlMin * concPct) / (flow * 6);
+                    if (resDose) resDose.innerText = dose.toFixed(2);
+                    const dailyConsKg = (dose * flow * 3.6 * hours) / 1000;
+                    if (resAuton) resAuton.innerText = (stockKg > 0 && dailyConsKg > 0) ? (stockKg / dailyConsKg).toFixed(1) : "---";
+                } else if(resDose) {
+                    resDose.innerText = "0.00";
+                    resAuton.innerText = "---";
+                }
+            });
+        };
+
+        window.addProductRow = () => {
+            const div = document.createElement('div');
+            div.className = 'dosage-row grid grid-cols-1 md:grid-cols-6 gap-6 p-8 bg-slate-50 rounded-[2rem] border border-slate-200 relative mt-4 shadow-inner';
+            div.innerHTML = `<button type="button" onclick="this.parentElement.remove(); window.calculateDoseAndStock()" class="absolute -top-3 -right-3 bg-red-600 text-white rounded-full w-10 h-10 text-[12px] font-black shadow-2xl hover:scale-110 transition-transform">×</button>
+                <div class="md:col-span-2"><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Producto</label><select class="w-full p-4 rounded-xl text-xs product-select font-black uppercase border-slate-200"><option value="PAC">PAC</option><option value="Sulfato">Sulfato Al</option><option value="Hipoclorito">Hipoclorito</option><option value="Polímero">Polímero</option></select></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">mL/min</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs pump-flow border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Conc (%)</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs conc-pct border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Stock (Kg)</label><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs current-stock border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                <div class="bg-navy rounded-2xl p-4 text-white text-center flex flex-col justify-center shadow-xl"><p class="text-2xl font-black leading-none"><span class="dosage-result">0.00</span></p><p class="text-[9px] text-cyan-400 font-black uppercase mt-1">Días: <span class="autonomy-result">---</span></p></div>`;
+            document.getElementById('dosageContainer').appendChild(div);
+        };
+
+        window.addQuoteRow = () => {
+            const tr = document.createElement('tr');
+            tr.className = 'quote-row border-b hover:bg-slate-50 transition-colors';
+            tr.innerHTML = `
+                <td class="p-6"><input type="text" class="w-full p-4 rounded-xl text-xs q-prod font-black uppercase border-slate-200" placeholder="Insumo"></td>
+                <td class="p-6"><input type="number" class="w-full p-4 rounded-xl text-xs text-center q-qty border font-black" value="0" oninput="window.updateQuoteTotals()"></td>
+                <td class="p-6"><input type="number" step="0.01" class="w-full p-4 rounded-xl text-xs text-center q-price border font-black" value="0" oninput="window.updateQuoteTotals()"></td>
+                <td class="p-6 text-right font-black text-navy q-sub text-lg">$0.00</td>
+                <td class="p-6 text-center"><button type="button" onclick="this.parentElement.parentElement.remove(); window.updateQuoteTotals()" class="text-red-400 scale-125 font-black">×</button></td>`;
+            document.getElementById('quoteBody').appendChild(tr);
+        };
+
+        window.updateQuoteTotals = () => {
+            let sub = 0;
+            document.querySelectorAll('.quote-row').forEach(row => {
+                const q = parseFloat(row.querySelector('.q-qty').value) || 0;
+                const p = parseFloat(row.querySelector('.q-price').value) || 0;
+                const tot = q * p;
+                row.querySelector('.q-sub').innerText = `$${tot.toFixed(2)}`;
+                sub += tot;
+            });
+            const tax = sub * 0.15;
+            document.getElementById('quoteSubtotal').innerText = `$${sub.toFixed(2)}`;
+            document.getElementById('quoteTax').innerText = `$${tax.toFixed(2)}`;
+            document.getElementById('quoteTotal').innerText = `$${(sub + tax).toFixed(2)}`;
+        };
+
+        window.switchTab = (tab) => {
+            ['recoleccion', 'comercial', 'historial'].forEach(t => {
+                const el = document.getElementById(`section-${t}`);
+                const bt = document.getElementById(`tab-${t}`);
+                if(el) el.className = t === tab ? 'space-y-12 block animate-in fade-in' : 'hidden';
+                if(bt) bt.className = `px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] ${t === tab ? 'tab-active' : 'opacity-40'}`;
+            });
+        };
+
+        window.handleClientTypeChange = (val) => {
+            const quoteSec = document.getElementById('cotizacion-section');
+            const footerTag = document.getElementById('footer-client-tag');
+            if(val === 'POTENCIAL') {
+                quoteSec.classList.remove('hidden');
+                footerTag.innerText = 'Prospecto Comercial: Oferta de Suministros';
+                footerTag.className = 'text-[11px] font-black uppercase text-gold-comercial tracking-[0.3em]';
+            } else {
+                quoteSec.classList.add('hidden');
+                footerTag.innerText = 'Cliente Cartera: Ingeniería Aplicada';
+                footerTag.className = 'text-[11px] font-black uppercase text-navy opacity-60 tracking-[0.3em]';
+            }
+        };
+
+        window.handleFinalizeReport = async () => {
+            if (!auth.currentUser) return;
+            const org = document.getElementById('organizacion')?.value;
+            const tel = document.getElementById('telefono')?.value;
+            if (!org || !tel) return window.showToast("Nombre del Cliente y Teléfono son obligatorios.");
+
+            const reportNum = `DOC-${Date.now().toString().slice(-6)}`;
+            const tipo = document.getElementById('tipoCliente')?.value;
+            
+            const paramsData = Array.from(document.querySelectorAll('.param-row')).map(row => {
+                const rawInput = row.querySelector('.raw-val');
+                const trInput = row.querySelector('.treated-val');
+                const rawVal = rawInput ? rawInput.value : "";
+                const trVal = trInput ? trInput.value : "";
+                const limit = parseFloat(row.getAttribute('data-limit')) || 0;
+                return {
+                    name: row.getAttribute('data-name') || "S/N",
+                    raw: rawVal === "" ? null : parseFloat(rawVal),
+                    treated: trVal === "" ? null : parseFloat(trVal),
+                    limit: limit,
+                    ok: trVal === "" ? true : parseFloat(trVal) <= limit
+                };
+            });
+
+            const quoteItems = Array.from(document.querySelectorAll('.quote-row')).map(row => ({
+                prod: row.querySelector('.q-prod')?.value || "S/N",
+                qty: row.querySelector('.q-qty')?.value || "0",
+                price: row.querySelector('.q-price')?.value || "0",
+                total: row.querySelector('.q-sub')?.innerText || "$0.00"
+            }));
+
+            const marketProducts = Array.from(document.querySelectorAll('.market-product-check:checked')).map(cb => cb.getAttribute('data-product'));
+
+            const reportData = {
+                idInforme: reportNum,
+                timestamp: new Date().toISOString(),
+                org, tipoCliente: tipo,
+                prov: document.getElementById('provincia')?.value || 'N/A',
+                cant: document.getElementById('canton')?.value || 'N/A',
+                tel, mail: document.getElementById('correo')?.value || 'N/A',
+                caudal: document.getElementById('caudal')?.value || '0',
+                hours: document.getElementById('horasOpPlanta')?.value || '24',
+                compliance: document.getElementById('realtime-percent')?.innerText.replace('%',''),
+                tecnico: document.getElementById('tecnicoPlanta')?.value || 'S/N',
+                observaciones: document.getElementById('observaciones')?.value || '',
+                params: paramsData,
+                dosages: Array.from(document.querySelectorAll('.dosage-row')).map(row => ({
+                    prod: row.querySelector('.product-select')?.value,
+                    mgL: row.querySelector('.dosage-result')?.innerText,
+                    days: row.querySelector('.autonomy-result')?.innerText
+                })),
+                comercial: {
+                    proveedor: document.getElementById('com_proveedor')?.value || 'N/A',
+                    marketProducts: marketProducts,
+                    adquisicion: document.getElementById('com_adquisicion')?.value || 'N/A',
+                    contratacion: document.getElementById('com_contratacion')?.value || 'N/A',
+                    fechaCompra: document.getElementById('com_fecha_compra')?.value || 'Pendiente',
+                    comentarios: document.getElementById('com_comentarios')?.value || '',
+                    cotizacion: quoteItems,
+                    totalQuote: document.getElementById('quoteTotal')?.innerText || "$0.00"
+                }
+            };
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'visitas'), reportData);
+                window.showToast("Gestión finalizada con éxito.");
+                window.generateReportUI(reportData);
+                setTimeout(() => window.location.reload(), 3000);
+            } catch (e) { window.showToast("Error al guardar datos."); }
+        };
+
+        window.generateReportUI = (data) => {
+            const win = window.open('', '_blank');
+            const isCartera = data.tipoCliente === 'CARTERA';
+            const hasAnalysis = data.params.some(p => p.treated !== null);
+            const scoreColor = data.compliance > 90 ? '#10b981' : '#ef4444';
+            
+            const pRows = data.params.map(p => `<tr><td>${p.name}</td><td style="text-align:center">${p.raw ?? '--'}</td><td style="text-align:center;font-weight:900">${p.treated ?? '--'}</td><td style="text-align:center;color:#999">${p.limit}</td></tr>`).join('');
+            const qRows = data.comercial.cotizacion.map(i => `<tr><td style="padding:15px; font-weight:800">${i.prod}</td><td style="text-align:center">${i.qty}</td><td style="text-align:center">$${i.price}</td><td style="text-align:right; font-weight:900">${i.total}</td></tr>`).join('');
+            const dCards = data.dosages.map(d => `<div style="border:2px solid #e2e8f0; padding:20px; border-radius:20px; text-align:center shadow-sm"><div style="font-size:10px; font-weight:900; color:#94a3b8; text-transform:uppercase">${d.prod}</div><div style="font-size:32px; font-weight:900; color:#000040">${d.mgL} <span style="font-size:12px">mg/L</span></div><div style="font-size:11px; color:#10b981; font-weight:900; background:#f0fdf4; padding:5px 15px; border-radius:40px">AUTONOMÍA: ${d.days} DÍAS</div></div>`).join('');
+
+            win.document.write(`<html><head><title>Informe Profesional</title><style>body{font-family:sans-serif;padding:60px;color:#1e293b;line-height:1.6}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{padding:15px;text-align:left;border-bottom:1px solid #f1f5f9}th{background:#f8fafc; font-size:11px; text-transform:uppercase; font-weight:900}.header{background:#000040;color:white;padding:50px;border-radius:40px;display:flex;justify-content:space-between;align-items:center}.comp-badge{background:#fff;color:${scoreColor};padding:30px 60px;border-radius:30px;text-align:center;border:8px solid ${scoreColor}}</style></head>
+                <body>
+                    <div class="header">
+                        <div><h1 style="margin:0 uppercase; font-size:32px; font-weight:900">${isCartera ? 'INFORME TÉCNICO DE CALIDAD' : 'PROPUESTA INTEGRAL DE SUMINISTROS'}</h1><p style="margin:8px 0 0 0; opacity:0.8; font-weight:700">División de Ingeniería Química y Agua</p></div>
+                        <div style="text-align:right; font-size:12px"><strong>REG: ${data.idInforme}</strong><br>Fecha de Emisión: ${new Date(data.timestamp).toLocaleDateString()}</div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:50px">
+                        <div>
+                            <p style="font-size:16px; margin:0"><strong>CLIENTE:</strong> ${data.org}<br><strong>UBICACIÓN:</strong> ${data.prov} / ${data.cant}<br><strong>CONTACTO:</strong> ${data.tel}<br><strong>RESPONSABLE:</strong> ${data.tecnico}</p>
+                        </div>
+                        ${isCartera ? `<div class="comp-badge"><div style="font-size:12px;font-weight:900;text-transform:uppercase; color:#94a3b8">Cumplimiento Global</div><div style="font-size:56px;font-weight:900">${data.compliance}%</div></div>` : ''}
+                    </div>
+
+                    ${!isCartera && data.comercial.cotizacion.length > 0 ? `
+                    <div style="border:4px solid #d4af37; padding:45px; background:#fffdf5; border-radius:40px; margin-top:50px">
+                        <h2 style="color:#d4af37;margin-top:0">PROPUESTA ECONÓMICA DE SUMINISTROS</h2>
+                        <table style="margin-top:25px"><thead><tr><th>Descripción</th><th style="text-align:center">Cant. Propuesta</th><th style="text-align:center">P. Unitario</th><th style="text-align:right">Subtotal</th></tr></thead><tbody>${qRows}</tbody></table>
+                        <div style="text-align:right;font-size:32px; font-weight:900; color:#000040">TOTAL OFERTADO: ${data.comercial.totalQuote}</div>
+                        <div style="margin-top:40px; padding:30px; background:#f8fafc; border-radius:25px; font-size:13px; font-weight:800; border:1px solid #e2e8f0; color:#475569">
+                            VALORES AGREGADOS INCLUIDOS EN EL SERVICIO:<br>✓ Capacitación técnica certificada al personal operativo.<br>✓ Asesoría técnica permanente en sitio.<br>✓ Acceso exclusivo a Plataforma Digital de Monitoreo.
+                        </div>
+                    </div>` : ''}
+
+                    ${isCartera ? `<h3 style="margin-top:50px; font-size:18px; border-left:10px solid #000040; padding-left:20px; font-weight:900 uppercase">Régimen Operativo y Stock</h3><div style="display:grid; grid-template-cols:repeat(3, 1fr); gap:25px; margin-top:30px">${dCards}</div>` : ''}
+                    ${(isCartera || hasAnalysis) ? `<h3 style="margin-top:50px; font-size:18px; border-left:10px solid #000040; padding-left:20px; font-weight:900 uppercase">Evaluación Analítica INEN 1108</h3><table><thead><tr style="background:#f8fafc"><th>Parámetro</th><th>Agua Cruda</th><th style="text-align:center">Agua Tratada</th><th style="text-align:center">Límite Normativo</th></tr></thead><tbody>${pRows}</tbody></table>` : ''}
+                    ${data.observaciones ? `<div style="padding:40px;background:#f8fafc;border-radius:30px;margin-top:40px;font-style:italic; border:2px solid #e2e8f0; font-weight:500"><strong>Notas de Ingeniería:</strong><br>${data.observaciones}</div>` : ''}
+                    <div style="text-align:center;margin-top:100px;font-size:11px;color:#94a3b8;border-top:2px solid #f1f5f9;padding-top:40px uppercase font-weight:900 tracking-widest">Servicios Profesionales de Ingeniería Química. Validez de Oferta: 15 días.</div>
+                </body></html>`);
+            win.document.close();
+        };
+
+        window.exportExcel = (tipo) => {
+            const filtered = records.filter(r => r.tipoCliente === tipo);
+            if (filtered.length === 0) return window.showToast("Sin registros para exportar.");
+            let csv = "\uFEFF";
+            if (tipo === 'CARTERA') {
+                csv += "ID;FECHA;INSTITUCION;PROV;CANT;TEL;CORREO;RESPONSABLE;CAUDAL;HORAS;CUMPLIMIENTO;";
+                PARAM_LIST.forEach(p => csv += `${p.name}_C;${p.name}_T;`);
+                csv += "OBS\n";
+                filtered.forEach(r => {
+                    csv += `"${r.idInforme}";"${new Date(r.timestamp).toLocaleDateString()}";"${r.org}";"${r.prov}";"${r.cant}";"${r.tel}";"${r.mail}";"${r.tecnico}";${r.caudal};${r.hours};${r.compliance}%;`;
+                    PARAM_LIST.forEach(p => { const v = r.params.find(x => x.name === p.name); csv += `${v?.raw ?? ''};${v?.treated ?? ''};`; });
+                    csv += `"${(r.observaciones||'').replace(/"/g,'""')}"\n`;
+                });
+            } else {
+                csv += "ID;FECHA;PROSPECTO;PROV;CANT;TEL;CORREO;COMPETENCIA;PRODUCTOS_COMPRA;ADQUISICION;CONTRATACION;FECHA_VTA;TOTAL;DETALLE_OFERTA\n";
+                filtered.forEach(r => {
+                    const prodCompra = r.comercial?.marketProducts?.join(' / ') || 'N/A';
+                    const det = r.comercial?.cotizacion?.map(i => `${i.prod}(${i.qty})`).join('/') || 'N/A';
+                    csv += `"${r.idInforme}";"${new Date(r.timestamp).toLocaleDateString()}";"${r.org}";"${r.prov}";"${r.cant}";"${r.tel}";"${r.mail}";"${r.comercial?.proveedor}";"${prodCompra}";"${r.comercial?.adquisicion}";"${r.comercial?.contratacion}";"${r.comercial?.fechaCompra}";"${r.comercial?.totalQuote}";"${det}"\n`;
+                });
+            }
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `BASE_DATOS_${tipo}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        };
+
+        window.loadHistory = () => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'visitas'), (snap) => {
+                records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const cBody = document.getElementById('carteraBody');
+                const pBody = document.getElementById('prospectosBody');
+                if(!cBody || !pBody) return;
+                cBody.innerHTML = ''; pBody.innerHTML = '';
+                records.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(r => {
+                    const dStr = new Date(r.timestamp).toLocaleDateString();
+                    if(r.tipoCliente === 'CARTERA') {
+                        cBody.innerHTML += `<tr class="hover:bg-blue-50 transition-all"><td class="p-8 font-mono text-[11px] text-slate-400 font-bold">${dStr}</td><td class="p-8 font-black uppercase text-navy">${r.org}</td><td class="p-8 text-[11px] font-black text-slate-500 uppercase">${r.prov}</td><td class="p-8 text-center"><span class="px-4 py-1.5 rounded-full font-black text-xs ${r.compliance > 90 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${r.compliance}%</span></td><td class="p-8 text-center flex gap-4 justify-center"><button onclick="window.generatePDFFromRecord('${r.id}')" class="bg-slate-100 p-3 rounded-2xl">👁️</button><button onclick="window.deleteRecord('${r.id}')" class="text-red-400 p-3">🗑️</button></td></tr>`;
+                    } else {
+                        pBody.innerHTML += `<tr class="hover:bg-amber-50 transition-all"><td class="p-8 font-mono text-[11px] text-slate-400 font-bold">${dStr}</td><td class="p-8 font-black uppercase text-navy">${r.org}</td><td class="p-8 text-[11px] font-black text-slate-500 uppercase">${r.prov}</td><td class="p-8 text-center font-black text-gold-comercial text-lg">${r.comercial?.totalQuote || '$0.00'}</td><td class="p-8 text-center flex gap-4 justify-center"><button onclick="window.generatePDFFromRecord('${r.id}')" class="bg-slate-100 p-3 rounded-2xl">👁️</button><button onclick="window.deleteRecord('${r.id}')" class="text-red-400 p-3">🗑️</button></td></tr>`;
+                    }
+                });
+            });
+        };
+
+        window.generatePDFFromRecord = (id) => {
+            const r = records.find(rec => rec.id === id);
+            if(r) window.generateReportUI(r);
+        };
+
+        window.deleteRecord = async (id) => {
+            if (confirm("¿Borrar definitivamente este registro del servidor central?")) { try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'visitas', id)); } catch(e) {} }
+        };
+
+        const start = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+                onAuthStateChanged(auth, u => { if (u) window.loadHistory(); });
+                window.initParams();
+                window.addQuoteRow();
+                window.showToast("SISTEMA ACTIVO: INTELIGENCIA QUÍMICA INICIADA.");
+            } catch(e) { console.error(e); }
+        };
+
+        start();
+    </script>
+</body>
+</html>
