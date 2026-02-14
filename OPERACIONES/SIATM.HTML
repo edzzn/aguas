@@ -6,6 +6,7 @@
     <title>Consola de Gestión PTAP - Ingeniería Química</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -77,6 +78,17 @@
     </style>
 </head>
 <body class="min-h-screen">
+
+    <!-- Navigation Bar -->
+    <div class="bg-white border-b border-slate-200 shadow-sm no-print sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="/index.html" class="flex items-center gap-2 text-slate-600 hover:text-navy font-bold text-sm transition-colors">
+                <i class="fas fa-arrow-left"></i>
+                <span class="uppercase tracking-wide">Volver al Inicio</span>
+            </a>
+            <div class="text-xs font-black text-slate-400 uppercase tracking-widest">SIATM</div>
+        </div>
+    </div>
 
     <div id="statusMessage" class="fixed bottom-32 right-6 z-[1000] hidden bg-navy text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/20 animate-pulse">
         <span id="statusText" class="font-bold uppercase text-xs tracking-widest text-center">Mensaje</span>

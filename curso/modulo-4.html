@@ -121,6 +121,32 @@
 </head>
 <body>
 
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 z-50 no-print shadow-xl">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Left: Home button -->
+            <a href="/index.html" class="flex items-center gap-3 text-white hover:text-sky-400 transition-colors group">
+                <i class="fas fa-home text-xl group-hover:scale-110 transition-transform"></i>
+                <span class="font-black uppercase text-sm tracking-wider">← Inicio</span>
+            </a>
+
+            <!-- Center: Module indicator -->
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
+                <i class="fas fa-book text-sky-500"></i>
+                <span>MÓDULO IV</span>
+            </div>
+
+            <!-- Right: Completed badge -->
+            <div class="flex items-center gap-2 bg-emerald-500/20 px-4 py-2 rounded-lg border border-emerald-500/30">
+                <i class="fas fa-check-circle text-emerald-400"></i>
+                <span class="font-black uppercase text-xs tracking-wider text-emerald-400">Completado</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Padding wrapper for fixed nav -->
+    <div class="pt-20">
+
     <!-- SECCIÓN PORTADA -->
     <section class="portada-full px-6">
         <div class="portada-grid"></div>
@@ -385,5 +411,8 @@
             }
         }
     </script>
+
+    </div>
+    <!-- End padding wrapper -->
 </body>
 </html>
