@@ -9,9 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Librería para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
-        
         :root {
             --navy: #0a192f;
             --navy-light: #172a45;
@@ -143,7 +142,7 @@
             <svg width="100%" height="100%"><pattern id="grid_p" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/></pattern><rect width="100%" height="100%" fill="url(#grid_p)" /></svg>
         </div>
         <nav class="relative z-20 p-6 max-w-7xl mx-auto w-full flex justify-between items-center text-center">
-            <a href="/index.html" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-black text-xs text-white transition-all flex items-center gap-2">
+            <a href="../index.html" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-black text-xs text-white transition-all flex items-center gap-2">
                 <i class="fas fa-home"></i>
                 <span>INICIO</span>
             </a>
@@ -235,26 +234,59 @@
             <!-- 03. JARRAS -->
             <section class="card-tech p-6 text-center">
                 <h2 class="text-lg font-black text-navy uppercase mb-8">03. Matriz de Validación en Jarras</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center text-center text-center">
-                    <script>
-                        for(let i=1; i<=4; i++) {
-                            document.write(`
-                            <div id="jar_container_${i}" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 0${i}</h4>
-                                <div class="space-y-2 mb-3">
-                                    <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_${i}" value="0"></div>
-                                    <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_${i}" value="0"></div>
-                                    <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_${i}" value="0"></div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-1 pt-2 border-t">
-                                    <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_${i}" class="text-center p-1 text-xs"></div>
-                                    <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_${i}" class="text-center p-1 text-xs"></div>
-                                    <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_${i}" class="text-center p-1 text-xs text-center"></div>
-                                </div>
-                            </div>
-                            `);
-                        }
-                    </script>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div id="jar_container_1" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 01</h4>
+                        <div class="space-y-2 mb-3">
+                            <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_1" value="0"></div>
+                            <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_1" value="0"></div>
+                            <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_1" value="0"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 pt-2 border-t">
+                            <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_1" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_1" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_1" class="text-center p-1 text-xs"></div>
+                        </div>
+                    </div>
+                    <div id="jar_container_2" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 02</h4>
+                        <div class="space-y-2 mb-3">
+                            <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_2" value="0"></div>
+                            <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_2" value="0"></div>
+                            <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_2" value="0"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 pt-2 border-t">
+                            <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_2" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_2" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_2" class="text-center p-1 text-xs"></div>
+                        </div>
+                    </div>
+                    <div id="jar_container_3" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 03</h4>
+                        <div class="space-y-2 mb-3">
+                            <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_3" value="0"></div>
+                            <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_3" value="0"></div>
+                            <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_3" value="0"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 pt-2 border-t">
+                            <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_3" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_3" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_3" class="text-center p-1 text-xs"></div>
+                        </div>
+                    </div>
+                    <div id="jar_container_4" class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-black text-navy text-[10px] border-b pb-2 mb-2 uppercase">Vaso 04</h4>
+                        <div class="space-y-2 mb-3">
+                            <div><label class="input-label text-left text-center">PAC (mg/L)</label><input type="number" id="jar_pac_4" value="0"></div>
+                            <div><label class="input-label text-left text-center">RpH (mg/L)</label><input type="number" id="jar_rph_4" value="0"></div>
+                            <div><label class="input-label text-left text-amber-600">Ayudante</label><input type="number" id="jar_ay_4" value="0"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 pt-2 border-t">
+                            <div><label class="input-label text-[7px]">Turb.</label><input type="number" id="jar_turb_4" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">Col.</label><input type="number" id="jar_color_4" class="text-center p-1 text-xs"></div>
+                            <div><label class="input-label text-[7px]">pH</label><input type="number" step="0.1" id="jar_ph_4" class="text-center p-1 text-xs"></div>
+                        </div>
+                    </div>
                 </div>
                 <button onclick="compararJarras()" class="btn-simulation bg-sky-600 mt-6">Validar Mejor Vaso (INEN < 1)</button>
             </section>
@@ -751,8 +783,16 @@
             const vM = data.caudal * 86.4 * 30;
             let rowsHtml = '';
             data.rows.forEach(r => { rowsHtml += `<tr><td><b>${r.name}</b></td><td>${r.dose} mg/L</td><td>${((parseFloat(r.dose)*vM)/1000).toLocaleString('es-ES')} kg</td><td>${r.total}</td></tr>`; });
-            win.document.write(`<html><head><style>body{font-family:sans-serif;padding:40px;color:#0a192f;font-size:12px} .report-container{max-width:850px;margin:auto;border:2px solid #0a192f;padding:40px;border-radius:10px} table{width:100%;border-collapse:collapse;margin:20px 0} th{background:#0a192f;color:#fff;padding:10px} td{padding:12px;border:1px solid #edf2f7;text-align:center} .header-box{background:#f1f5f9;padding:20px;border-radius:8px;margin-bottom:20px} .footer-summary{background:#0a192f;color:#fff;padding:25px;border-radius:10px;display:flex;justify-content:space-between;align-items:center} .carac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}</style></head><body><div class="report-container"><h1>MEMORIA TÉCNICA DE OPTIMIZACIÓN (INEN 1108)</h1><div class="header-box"><b>ENTIDAD:</b> ${data.org}<br><b>TOMA / CAPTACIÓN:</b> ${data.sample}<br><b>FECHA:</b> ${data.fecha}<br><b>CAUDAL DE DISEÑO:</b> ${data.caudal} L/s (${(data.caudal*86.4).toFixed(2)} m3/día)</div><h3>I. CARACTERIZACIÓN DEL AGUA CRUDA</h3><div class="carac-grid"><div>Turbiedad: <b>${data.carac.turb} NTU</b></div><div>pH Crudo: <b>${data.carac.ph}</b></div><div>Color: <b>${data.carac.col} UC</b></div><div>Hierro: <b>${data.carac.fe} mg/L</b></div><div>Alcalinidad: <b>${data.carac.alc} mg/L</b></div><div>Nitritos: <b>${data.carac.n2} mg/L</b></div></div><h3>II. VALIDACIÓN TÉCNICA (VASO GANADOR 0${data.jarra.num})</h3><div style="background:#dcfce7; padding:15px; border-radius:8px; color:#166534; margin-bottom:20px"><b>PARÁMETROS LOGRADOS:</b> Turb: ${data.jarra.turb} NTU | Col: ${data.jarra.color} UC | pH: ${data.jarra.ph}<br><b>DOSIS APLICADAS:</b> PAC: ${data.jarra.pac} mg/L | RpH: ${data.jarra.rph} mg/L | Ayudante: ${data.jarra.ay} mg/L</div><h3>III. PARAMETRIZACIÓN DE INSUMOS</h3><table><thead><tr><th>INSUMO</th><th>DOSIS META</th><th>CONSUMO MENSUAL (KG)</th><th>GASTO PROYECTADO</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer-summary"><div>COSTO UNITARIO ESTIMADO: <h3>${data.costm3} USD/m3</h3></div><div>INVERSIÓN MENSUAL TOTAL: <h3>${data.total}</h3></div></div><div style="margin-top:50px;text-align:center;border-top:1px solid #eee;padding-top:20px"><b>FIRMA RESPONSABLE: SERVICIOS PROFESIONALES TERA</b></div></div><script>window.print();<\/script></body></html>`);
+            const reportHtml = '<html><head><style>body{font-family:sans-serif;padding:40px;color:#0a192f;font-size:12px} .report-container{max-width:850px;margin:auto;border:2px solid #0a192f;padding:40px;border-radius:10px} table{width:100%;border-collapse:collapse;margin:20px 0} th{background:#0a192f;color:#fff;padding:10px} td{padding:12px;border:1px solid #edf2f7;text-align:center} .header-box{background:#f1f5f9;padding:20px;border-radius:8px;margin-bottom:20px} .footer-summary{background:#0a192f;color:#fff;padding:25px;border-radius:10px;display:flex;justify-content:space-between;align-items:center} .carac-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}<\/style><\/head>'
+                + '<bo' + 'dy><div class="report-container"><h1>MEMORIA TÉCNICA DE OPTIMIZACIÓN (INEN 1108)<\/h1><div class="header-box"><b>ENTIDAD:<\/b> ' + data.org + '<br><b>TOMA / CAPTACIÓN:<\/b> ' + data.sample + '<br><b>FECHA:<\/b> ' + data.fecha + '<br><b>CAUDAL DE DISEÑO:<\/b> ' + data.caudal + ' L/s (' + (data.caudal*86.4).toFixed(2) + ' m3/día)<\/div>'
+                + '<h3>I. CARACTERIZACIÓN DEL AGUA CRUDA<\/h3><div class="carac-grid"><div>Turbiedad: <b>' + data.carac.turb + ' NTU<\/b><\/div><div>pH Crudo: <b>' + data.carac.ph + '<\/b><\/div><div>Color: <b>' + data.carac.col + ' UC<\/b><\/div><div>Hierro: <b>' + data.carac.fe + ' mg/L<\/b><\/div><div>Alcalinidad: <b>' + data.carac.alc + ' mg/L<\/b><\/div><div>Nitritos: <b>' + data.carac.n2 + ' mg/L<\/b><\/div><\/div>'
+                + '<h3>II. VALIDACIÓN TÉCNICA (VASO GANADOR 0' + data.jarra.num + ')<\/h3><div style="background:#dcfce7; padding:15px; border-radius:8px; color:#166534; margin-bottom:20px"><b>PARÁMETROS LOGRADOS:<\/b> Turb: ' + data.jarra.turb + ' NTU | Col: ' + data.jarra.color + ' UC | pH: ' + data.jarra.ph + '<br><b>DOSIS APLICADAS:<\/b> PAC: ' + data.jarra.pac + ' mg/L | RpH: ' + data.jarra.rph + ' mg/L | Ayudante: ' + data.jarra.ay + ' mg/L<\/div>'
+                + '<h3>III. PARAMETRIZACIÓN DE INSUMOS<\/h3><table><thead><tr><th>INSUMO<\/th><th>DOSIS META<\/th><th>CONSUMO MENSUAL (KG)<\/th><th>GASTO PROYECTADO<\/th><\/tr><\/thead><tbody>' + rowsHtml + '<\/tbody><\/table>'
+                + '<div class="footer-summary"><div>COSTO UNITARIO ESTIMADO: <h3>' + data.costm3 + ' USD/m3<\/h3><\/div><div>INVERSIÓN MENSUAL TOTAL: <h3>' + data.total + '<\/h3><\/div><\/div>'
+                + '<div style="margin-top:50px;text-align:center;border-top:1px solid #eee;padding-top:20px"><b>FIRMA RESPONSABLE: SERVICIOS PROFESIONALES TERA<\/b><\/div><\/div><\/bo' + 'dy><\/html>';
+            win.document.write(reportHtml);
             win.document.close();
+            setTimeout(function() { win.print(); }, 500);
         }
 
         function reiniciarPlataforma() {
