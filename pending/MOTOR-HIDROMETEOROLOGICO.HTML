@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTAP Sentinel Pro - Inteligencia Operativa ✨</title>
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURACIÓN Y ESTADO ---
+        window.appData = {
+            location: "Cuenca, EC",
+            plantSize: "Mediana",
+            chemical: "Alumbre",
+            avgDose: 15,
+            weatherAlert: "Despejado",
+            lastFetch: null
+        };
+
+        const weatherApiKey = "6f27a4e8a38536ac54c86e73221465ac"; 
+        // Clave de API verificada e integrada para funcionamiento local y en la nube
+        const geminiApiKey = "AIzaSyBksMyInaDQ-qwzSSGGts9PcvvCdm65SEI"; 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ptap-sentinel-pro-v3';
+        
+        let db, auth;
+        let isAuthReady = false;
+
+        // --- UTILIDADES ---
+        const showToast = (msg, type = 'info') => {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.className = `fixed bottom-5 right-5 p-4 rounded-lg shadow-2xl transition-all duration-500 z-[110] ${type === 'error' ? 'bg-red-600' : 'bg-blue-600'} text-white opacity-100 text-sm`;
+            setTimeout(() => { if(toast) toast.classList.add('opacity-0'); }, 4500);
+        };
+
+        const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return await response.json();
+                    if (response.status === 401 || response.status === 403) {
+                        throw new Error("Clave de API de IA no válida o restringida.");
+                    }
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                }
+                await new Promise(r => setTimeout(r, backoff));
+                backoff *= 2;
+            }
+        };
+
+        // --- GEMINI API INTEGRATIONS ---
+
+        // 1. ✨ Generador de Reporte Técnico Profesional
+        window.generateAIReport = async () => {
+            const btn = document.getElementById('ai-report-btn');
+            const output = document.getElementById('ai-report-output');
+            if (!btn || !output) return;
+            
+            btn.disabled = true;
+            const originalText = btn.innerText;
+            btn.innerText = "✨ Redactando...";
+
+            const context = {
+                ubicacion: window.appData.location,
+                quimico: window.appData.chemical,
+                caudal: document.getElementById('plant-flow-lps')?.value || "0",
+                ntu_actual: document.getElementById('current-ntu')?.value || "0",
+                lluvia: document.getElementById('rain-intensity')?.value || "0",
+                dosis: document.getElementById('res-dose')?.innerText || "0 mg/L",
+                aforo: document.getElementById('res-flow-ml')?.innerText || "0 ml/min"
+            };
+
+            const systemPrompt = "Eres un Ingeniero Senior de Plantas de Tratamiento de Agua Potable. Tu lenguaje es técnico, ejecutivo y profesional.";
+            const userPrompt = `Redacta un informe técnico de 3 párrafos cortos: 1) Diagnóstico de condiciones: Caudal ${context.caudal} LPS y Turbiedad ${context.ntu_actual} NTU. 2) Análisis de riesgo por lluvia de ${context.lluvia}mm. 3) Instrucción de dosificación con ${context.quimico} y ajuste de bomba a ${context.aforo}. No uses introducciones genéricas, ve al grano.`;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+                const result = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    output.innerText = text;
+                    output.classList.remove('hidden');
+                    showToast("✨ Reporte de Ingeniería generado");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || "Error al conectar con el servidor de IA", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        };
+
+        // 2. ✨ Asistente de Voz del Protocolo (TTS)
+        window.speakAlerts = async () => {
+            const btn = document.getElementById('tts-btn');
+            if (!btn) return;
+            const originalText = btn.innerText;
+            btn.innerText = "✨ Generando voz...";
+            
+            const recBox = document.getElementById('recommendations-box');
+            const recommendations = recBox ? Array.from(recBox.querySelectorAll('span:not(.font-bold)'))
+                .map(el => el.innerText).join(". ") : "Sin protocolos activos.";
+            
+            const textToSay = `Atención operador Tera. Protocolo preventivo para ${window.appData.location}: ${recommendations}`;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${geminiApiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: textToSay }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                        },
+                        model: "gemini-2.5-flash-preview-tts"
+                    })
+                });
+
+                const result = await response.json();
+                const part = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                
+                if (part && part.inlineData.data) {
+                    const sampleRate = parseInt(part.inlineData.mimeType.split('rate=')[1]) || 24000;
+                    const pcmData = atob(part.inlineData.data);
+                    const wavBlob = pcmToWav(pcmData, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Error en asistente de voz", "error");
+            } finally {
+                btn.innerText = originalText;
+            }
+        };
+
+        // Header WAV para encapsular datos PCM crudos
+        function pcmToWav(pcmString, sampleRate) {
+            const len = pcmString.length;
+            const buffer = new ArrayBuffer(44 + len);
+            const view = new DataView(buffer);
+            const writeStr = (v, o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+
+            writeStr(view, 0, 'RIFF');
+            view.setUint32(4, 36 + len, true);
+            writeStr(view, 8, 'WAVE');
+            writeStr(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM Lineal
+            view.setUint16(22, 1, true); // Mono
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeStr(view, 36, 'data');
+            view.setUint32(40, len, true);
+            for (let i = 0; i < len; i++) view.setUint8(44 + i, pcmString.charCodeAt(i));
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // --- FIREBASE CORE ---
+        window.updateUIFromData = () => {
+            const locDisplay = document.getElementById('display-location');
+            const chemDisplay = document.getElementById('display-chem');
+            if (locDisplay) locDisplay.innerText = window.appData.location;
+            if (chemDisplay) chemDisplay.innerText = window.appData.chemical;
+            
+            const cfgLoc = document.getElementById('config-location');
+            const cfgSize = document.getElementById('config-size');
+            const cfgChem = document.getElementById('config-chem');
+            const cfgDose = document.getElementById('config-avg-dose');
+            const cfgConc = document.getElementById('config-conc');
+
+            if (cfgLoc) cfgLoc.value = window.appData.location || "";
+            if (cfgSize) cfgSize.value = window.appData.plantSize || "Mediana";
+            if (cfgChem) cfgChem.value = window.appData.chemical || "Alumbre";
+            if (cfgDose) cfgDose.value = window.appData.avgDose || 15;
+            if (cfgConc) cfgConc.value = window.appData.avgConc || 10;
+        };
+
+        const startFirebase = async () => {
+            try {
+                if (typeof __firebase_config === 'undefined') return;
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => { if (user) { isAuthReady = true; loadPlantSettings(user.uid); } });
+            } catch (err) { console.error(err); }
+        };
+
+        const loadPlantSettings = async (uid) => {
+            if (!db || !isAuthReady) return;
+            const docRef = doc(db, 'artifacts', appId, 'users', uid, 'settings', 'main');
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    window.appData = { ...window.appData, ...docSnap.data() };
+                    window.updateUIFromData();
+                    if (window.updateCalculations) window.updateCalculations();
+                }
+            } catch (err) {}
+        };
+
+        window.saveSettings = async () => {
+            if (!auth?.currentUser || !isAuthReady) {
+                showToast("Error de acceso al servidor", "error");
+                return;
+            }
+            const data = {
+                location: document.getElementById('config-location')?.value || window.appData.location,
+                plantSize: document.getElementById('config-size')?.value || window.appData.plantSize,
+                chemical: document.getElementById('config-chem')?.value || window.appData.chemical,
+                avgDose: parseFloat(document.getElementById('config-avg-dose')?.value) || 15,
+                avgConc: parseFloat(document.getElementById('config-conc')?.value) || 10
+            };
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'settings', 'main'), data);
+                window.appData = { ...window.appData, ...data };
+                window.updateUIFromData(); 
+                showToast("Ficha técnica sincronizada");
+                document.getElementById('config-modal')?.classList.add('hidden');
+                if (window.updateCalculations) window.updateCalculations();
+            } catch (e) { showToast("Error al guardar en la nube", "error"); }
+        };
+
+        // --- CLIMA API ---
+        window.fetchWeather = async () => {
+            let location = window.appData.location;
+            const loader = document.getElementById('weather-loader');
+            if (loader) loader.classList.remove('hidden');
+            try {
+                const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${weatherApiKey}&units=metric&lang=es`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Ciudad no reconocida.");
+                const data = await response.json();
+                let rain24h = 0;
+                for (let i = 0; i < 8; i++) if (data.list[i].rain) rain24h += data.list[i].rain['3h'] || 0;
+                let eventVal = 1;
+                if (rain24h > 40) eventVal = 15; else if (rain24h > 15) eventVal = 6; else if (rain24h > 5) eventVal = 2.5;
+                if (document.getElementById('rain-intensity')) document.getElementById('rain-intensity').value = rain24h.toFixed(1);
+                if (document.getElementById('event-type')) document.getElementById('event-type').value = eventVal;
+                showToast(`Pronóstico: ${rain24h.toFixed(1)} mm previstos.`);
+                window.updateCalculations();
+            } catch (err) { showToast(err.message, "error"); }
+            finally { if (loader) loader.classList.add('hidden'); }
+        };
+
+        // --- RESET TOTAL ---
+        window.resetInputs = () => {
+            const inputs = ['current-ntu', 'plant-flow-lps', 'rain-intensity', 'rain-duration'];
+            inputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = 0; });
+            const eventType = document.getElementById('event-type');
+            if (eventType) eventType.value = 1;
+            const aiOutput = document.getElementById('ai-report-output');
+            if (aiOutput) { aiOutput.innerText = ""; aiOutput.classList.add('hidden'); }
+            window.updateCalculations();
+            showToast("Planta restablecida a línea base (0)");
+        };
+
+        startFirebase();
+    </script>
+    <style>
+        :root { --navy-dark: #0a192f; --navy-light: #112240; --accent-blue: #64ffda; --text-silver: #ccd6f6; }
+        body { background-color: var(--navy-dark); color: var(--text-silver); font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        .card { background-color: var(--navy-light); border-left: 4px solid #3b82f6; transition: all 0.3s; }
+        .input-field { background: #0a192f; border: 1px solid #233554; color: #64ffda; padding: 0.5rem; border-radius: 0.375rem; width: 100%; }
+        .btn-primary { background-color: #3b82f6; color: white; padding: 0.6rem 1rem; border-radius: 0.375rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-ai { background: linear-gradient(45deg, #3b82f6, #8b5cf6); color: white; transition: 0.3s; }
+        .btn-ai:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+        .pulse-red { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #233554; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="toast" class="fixed bottom-5 right-5 p-4 rounded-lg shadow-2xl opacity-0 transition-all pointer-events-none text-sm z-[150]"></div>
+
+    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-700 pb-6 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white tracking-tight uppercase">motor de inteligencia <span class="text-blue-500">hidrometeorológica</span></h1>
+            <div class="flex items-center gap-2 mt-1">
+                <span id="display-location" class="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded tracking-wide font-medium uppercase">Cuenca, EC</span>
+                <span id="display-chem" class="text-xs bg-cyan-900 text-cyan-200 px-2 py-1 rounded font-bold uppercase tracking-wider">Alumbre</span>
+            </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="document.getElementById('config-modal').classList.remove('hidden')" class="bg-gray-700 hover:bg-gray-600 p-2 px-4 rounded text-xs flex items-center gap-2">Configurar</button>
+            <button onclick="window.fetchWeather()" class="bg-blue-700 hover:bg-blue-600 p-2 px-4 rounded text-xs font-bold flex items-center gap-2">
+                <span id="weather-loader" class="animate-spin hidden">🌀</span> Sincronizar Clima
+            </button>
+            <button onclick="window.generateAIReport()" id="ai-report-btn" class="btn-ai p-2 px-4 rounded text-xs font-bold shadow-lg">✨ Generar Reporte</button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="space-y-6">
+            <section class="card p-5 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-widest">Estado Operativo</h3>
+                    <button onclick="window.resetInputs()" class="text-[10px] text-gray-500 hover:text-red-400 border border-gray-700 px-2 py-0.5 rounded transition-all">REINICIAR</button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] mb-1 text-gray-400 uppercase tracking-tighter">Turbiedad Cruda (NTU)</label>
+                        <input type="number" id="current-ntu" class="input-field text-lg font-bold" value="12" step="0.1" onchange="window.updateCalculations()">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] mb-1 text-gray-400 uppercase tracking-tighter">Caudal de Planta (LPS)</label>
+                        <input type="number" id="plant-flow-lps" class="input-field text-lg font-bold" value="150" onchange="window.updateCalculations()">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card p-5 rounded-lg shadow-lg border-l-yellow-600">
+                <h3 class="text-xs font-bold text-yellow-500 mb-4 uppercase tracking-widest">Simulación Evento</h3>
+                <div class="space-y-3 text-xs">
+                    <div><label class="block mb-1 text-gray-400">Precipitación (mm/día)</label><input type="number" id="rain-intensity" class="input-field" value="10"></div>
+                    <div><label class="block mb-1 text-gray-400">Duración (Días)</label><input type="number" id="rain-duration" class="input-field" value="2"></div>
+                    <div>
+                        <label class="block mb-1 text-gray-400">Severidad</label>
+                        <select id="event-type" class="input-field">
+                            <option value="1">Base (Ligera)</option>
+                            <option value="2.5">Moderada</option>
+                            <option value="6">Intensa</option>
+                            <option value="15">Extrema</option>
+                        </select>
+                    </div>
+                    <button onclick="window.updateCalculations()" class="btn-primary w-full mt-2 uppercase text-[10px]">Actualizar Impacto</button>
+                </div>
+            </section>
+        </div>
+
+        <div class="lg:col-span-3 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-6 rounded-lg text-center border-l-cyan-500 shadow-xl">
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-cyan-400">Dosis Sugerida</span>
+                    <div id="res-dose" class="text-3xl font-bold text-white mt-1">-- mg/L</div>
+                </div>
+                <div class="card p-6 rounded-lg text-center border-l-orange-500 shadow-xl">
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-orange-400">Aforo Bomba</span>
+                    <div id="res-flow-ml" class="text-3xl font-bold text-white mt-1">-- ml/min</div>
+                    <div class="text-[10px] text-gray-500 mt-1 uppercase">Solución al <span id="display-conc">10</span>%</div>
+                </div>
+                <div class="card p-6 rounded-lg text-center border-l-green-500 shadow-xl">
+                    <span class="text-[10px] uppercase font-bold tracking-widest text-green-400">Consumo Diario</span>
+                    <div id="res-cons" class="text-3xl font-bold text-white mt-1">-- kg/d</div>
+                </div>
+            </div>
+
+            <div id="ai-report-output" class="hidden bg-blue-900/20 border border-blue-500/50 p-6 rounded-lg text-sm shadow-inner leading-relaxed text-gray-200"></div>
+
+            <div class="card p-6 rounded-lg min-h-[400px] shadow-xl">
+                <h3 class="text-sm font-semibold text-white mb-6 uppercase tracking-widest">Evolución de Turbiedad NTU (7 Días)</h3>
+                <div style="height: 300px;"><canvas id="turbidityChart"></canvas></div>
+                <div id="alert-zone" class="mt-4 p-3 rounded-lg bg-red-900/40 border border-red-500/50 text-red-200 text-xs font-medium hidden animate-pulse"></div>
+            </div>
+
+            <div class="card p-6 rounded-lg border-l-accent-blue shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Protocolo de Operación</h3>
+                    <button onclick="window.speakAlerts()" id="tts-btn" class="text-[10px] bg-accent-blue/10 text-accent-blue p-1 px-3 rounded-full border border-accent-blue/30 hover:bg-accent-blue hover:text-navy-dark transition-all font-bold">✨ Oír Protocolo</button>
+                </div>
+                <div id="recommendations-box" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto mt-12 mb-8 text-center text-gray-500 text-[10px] uppercase tracking-[0.2em] border-t border-gray-800 pt-6 leading-loose">
+        <p>© 2026 Servicios Profesionales Tera · Todos los derechos reservados · Ecuador</p>
+        <p>Build 1.0.3 · Acceso Restringido · Entorno Operativo</p>
+    </footer>
+
+    <!-- Modal Configuración -->
+    <div id="config-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center hidden z-[200] p-4">
+        <div class="bg-navy-light border border-blue-900 rounded-xl p-8 max-w-sm w-full shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-4 border-b border-blue-800 pb-2 uppercase tracking-wide">Ficha Técnica</h2>
+            <div class="space-y-4 text-sm">
+                <div><label class="text-gray-400 block mb-1 text-xs">Ubicación (Ej: Cuenca, EC)</label><input type="text" id="config-location" class="input-field"></div>
+                <div>
+                    <label class="text-gray-400 block mb-1 text-xs">Producto en Uso</label>
+                    <select id="config-chem" class="input-field">
+                        <option value="Alumbre">Sulfato de Aluminio</option>
+                        <option value="PAC">Policloruro (PAC)</option>
+                        <option value="PACS">Policlorosulfato (PACS)</option>
+                        <option value="Ferrico">Cloruro Férrico</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-gray-400 block mb-1 text-xs">Conc. (%)</label><input type="number" id="config-conc" class="input-field"></div>
+                    <div><label class="text-gray-400 block mb-1 text-xs">Dosis Base</label><input type="number" id="config-avg-dose" class="input-field"></div>
+                </div>
+                <button onclick="window.saveSettings()" class="btn-primary w-full mt-4 py-3 shadow-lg uppercase font-bold text-xs tracking-widest">Sincronizar</button>
+                <button onclick="document.getElementById('config-modal').classList.add('hidden')" class="w-full text-gray-500 mt-3 text-xs hover:text-white transition-colors text-center block">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        window.updateCalculations = () => {
+            if (typeof Chart === 'undefined') return;
+            const ntuActual = parseFloat(document.getElementById('current-ntu')?.value) || 0;
+            const lps = parseFloat(document.getElementById('plant-flow-lps')?.value) || 0;
+            const rainIntensity = parseFloat(document.getElementById('rain-intensity')?.value) || 0;
+            const duration = parseInt(document.getElementById('rain-duration')?.value) || 0;
+            const multiplier = parseFloat(document.getElementById('event-type')?.value) || 1;
+            
+            let dataNTU = [ntuActual];
+            let labels = ['Hoy'];
+            for (let i = 1; i <= 6; i++) {
+                labels.push('Día ' + i);
+                if (i <= duration) dataNTU.push(Math.round(ntuActual + (rainIntensity * multiplier * (1 + i * 0.15))));
+                else dataNTU.push(Math.round(Math.max(ntuActual, dataNTU[i-1] * 0.65)));
+            }
+            
+            const chemType = document.getElementById('config-chem')?.value || "Alumbre";
+            const conc = parseFloat(document.getElementById('config-conc')?.value) || 10;
+            let factor = 1.0;
+            switch(chemType) {
+                case 'PAC': factor = 0.78; break;
+                case 'PACS': factor = 0.68; break;
+                case 'Ferrico': factor = 0.88; break;
+                default: factor = 1.15;
+            }
+
+            const peakNTU = Math.max(...dataNTU);
+            const dose = (peakNTU === 0 && lps === 0) ? 0 : Math.round((10 + (Math.sqrt(peakNTU) * 4.6 * factor)) * 10) / 10;
+            
+            const doseEl = document.getElementById('res-dose');
+            const concEl = document.getElementById('display-conc');
+            const flowEl = document.getElementById('res-flow-ml');
+            const consEl = document.getElementById('res-cons');
+            const alertZone = document.getElementById('alert-zone');
+            
+            if (doseEl) doseEl.innerText = dose + " mg/L";
+            if (concEl) concEl.innerText = conc;
+            
+            const mlmin = (lps > 0 && conc > 0) ? (lps * 3.6 * dose) / (conc * 0.6) : 0;
+            if (flowEl) flowEl.innerText = isNaN(mlmin) ? "0 ml/min" : Math.round(mlmin) + " ml/min";
+            if (consEl) consEl.innerText = isNaN(dose) ? "0 kg/d" : Math.round(lps * 3.6 * 24 * dose / 1000) + " kg/d";
+            
+            if (peakNTU > 80 && alertZone) {
+                alertZone.classList.remove('hidden');
+                alertZone.innerText = `ALERTA OPERATIVA: Pico proyectado de ${peakNTU} NTU. Riesgo de saturación de lechos filtrantes.`;
+            } else if (alertZone) alertZone.classList.add('hidden');
+            
+            renderChart(labels, dataNTU);
+            updateRecs(peakNTU, rainIntensity, mlmin);
+        };
+
+        function updateRecs(ntu, rain, mlmin) {
+            const box = document.getElementById('recommendations-box');
+            if (!box) return;
+            box.innerHTML = "";
+            if (ntu === 0 && rain === 0) {
+                box.innerHTML = "<p class='text-gray-500 italic'>Sin datos de entrada.</p>";
+                return;
+            }
+            let items = [
+                { t: "Analítica", c: `Muestreo cada hora para pico de ${ntu} NTU.` },
+                { t: "Bomba", c: `Ajustar dosificación a ${Math.round(mlmin)} ml/min.` }
+            ];
+            if (ntu > 60) items.push({ t: "Purga", c: "Incrementar frecuencia de purga un 50%." });
+            items.forEach(i => {
+                const d = document.createElement('div');
+                d.className = "bg-navy-dark/60 p-4 rounded border border-blue-900/40 shadow-inner";
+                d.innerHTML = `<span class="text-accent-blue font-bold text-[9px] uppercase block mb-1 underline">${i.t}</span><span class="text-gray-200 leading-tight">${i.c}</span>`;
+                box.appendChild(d);
+            });
+        }
+
+        function renderChart(labels, data) {
+            const canvas = document.getElementById('turbidityChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Turbiedad (NTU)',
+                        data: data,
+                        borderColor: '#64ffda',
+                        backgroundColor: 'rgba(100, 255, 218, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { grid: { color: '#1d2d44' }, ticks: { color: '#8892b0' }, beginAtZero: true },
+                        x: { grid: { display: false }, ticks: { color: '#8892b0' } }
+                    }
+                }
+            });
+        }
+
+        window.onload = () => { 
+            setTimeout(() => { 
+                if (window.updateUIFromData) window.updateUIFromData(); 
+                if (window.updateCalculations) window.updateCalculations(); 
+            }, 800); 
+        };
+    </script>
+</body>
+</html>

@@ -165,7 +165,7 @@
                                 <div class="flex items-center gap-3">
                                     <div class="bg-cyan-500 p-2 rounded-xl"><i data-lucide="sparkles" class="w-5 h-5 text-white"></i></div>
                                     <div class="text-left">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 leading-none mb-1">Expert Diagnostic Assistant ✨</p>
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400 leading-none mb-1">Expert Diagnostic Assistant </p>
                                         <p id="ai-title" class="text-lg font-black tracking-tight uppercase">Análisis IA de Proceso</p>
                                     </div>
                                 </div>
@@ -177,7 +177,7 @@
                                 <div id="scenario-response-area" class="hidden flex flex-col md:flex-row gap-2 mt-4">
                                     <input id="user-solution" type="text" placeholder="Escribe tu propuesta técnica aquí..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm outline-none focus:border-cyan-500 text-white font-medium">
                                     <button onclick="evaluarPropuesta()" class="bg-cyan-500 text-[#0a1128] font-black px-8 py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl hover:bg-cyan-400 transition-all">
-                                        Enviar Protocolo ✨
+                                        Enviar Protocolo 
                                     </button>
                                 </div>
                             </div>
@@ -364,7 +364,7 @@
                                     <div class="bg-white/5 p-4 rounded-xl"><p class="text-xs text-red-500 font-black uppercase mb-1 leading-none text-left">Subdosificación</p><p class="text-[11px] text-slate-300 italic text-left">Falla catastrófica de la barrera sanitaria.</p></div>
                                 </div>
                             </div>
-                            <button onclick="generarEscenarioIA()" class="w-full bg-cyan-500 text-[#0a1128] font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl group hover:bg-cyan-400 transition-all flex justify-center items-center">Simular Crisis ✨</button>
+                            <button onclick="generarEscenarioIA()" class="w-full bg-cyan-500 text-[#0a1128] font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl group hover:bg-cyan-400 transition-all flex justify-center items-center">Simular Crisis </button>
                         </div>
                     </div>
                 `;
@@ -461,7 +461,7 @@
                                     <div class="flex items-center gap-4 relative z-10">
                                         <div class="bg-cyan-500 p-4 rounded-2xl shadow-lg shadow-cyan-500/20 group-hover:rotate-12 transition-transform"><i data-lucide="sparkles" class="w-7 h-7"></i></div>
                                         <div class="text-left text-left">
-                                            <p class="text-xs font-black uppercase text-cyan-400 tracking-widest leading-none mb-1 text-left">Análisis Proactivo IA ✨</p>
+                                            <p class="text-xs font-black uppercase text-cyan-400 tracking-widest leading-none mb-1 text-left">Análisis Proactivo IA </p>
                                             <p class="font-black text-xl uppercase tracking-tighter leading-none text-left">Validar Escenario Actual</p>
                                         </div>
                                     </div>
@@ -530,7 +530,7 @@
                                         </ul>
                                     </div>
                                     <div class="bg-slate-900/80 border-2 border-cyan-500/20 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-left">
-                                        <p class="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2 relative z-10"><i data-lucide="message-square" class="w-4 h-4"></i> Consultor HSE IA ✨</p>
+                                        <p class="text-cyan-500 font-black uppercase text-[10px] tracking-widest mb-6 flex items-center gap-2 relative z-10"><i data-lucide="message-square" class="w-4 h-4"></i> Consultor HSE IA </p>
                                         <div class="flex gap-2 relative z-10 text-left"><input id="safety-query" type="text" placeholder="Consultar protocolo de emergencia..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm outline-none focus:border-cyan-500 font-medium text-white text-left text-left text-left"><button onclick="runHSEQuery()" class="bg-cyan-500 p-4 rounded-2xl hover:bg-cyan-600 shadow-lg transition-all text-left"><i data-lucide="send" class="w-5 h-5 text-[#0a1128]"></i></button></div>
                                         <p class="text-[9px] text-slate-500 mt-4 uppercase font-bold tracking-widest">Protocolos basados en estándares OSHA / AWWA</p>
                                     </div>
@@ -594,7 +594,7 @@
         }
 
         async function runHSEQuery() {
-            document.getElementById('ai-title').innerText = "Consultoría HSE ✨";
+            document.getElementById('ai-title').innerText = "Consultoría HSE ";
             document.getElementById('scenario-response-area').classList.add('hidden');
             const query = document.getElementById('safety-query').value;
             if(!query) return;
@@ -602,7 +602,7 @@
         }
 
         async function generarEscenarioIA() {
-            document.getElementById('ai-title').innerText = "Simulador de Crisis ✨";
+            document.getElementById('ai-title').innerText = "Simulador de Crisis ";
             const prompt = "Genera un desafío técnico de emergencia corto en desinfección de agua potable (ej: fuga de gas, aumento repentino de amoníaco, fallo de eyector). Describe solo el problema, no des la solución.";
             await callGeminiAPI(prompt, "Instructor senior de plantas de tratamiento de agua.", true);
         }
@@ -611,7 +611,7 @@
             const userSolution = document.getElementById('user-solution').value;
             if (!userSolution.trim()) return;
 
-            document.getElementById('ai-title').innerText = "Evaluación Técnica IA ✨";
+            document.getElementById('ai-title').innerText = "Evaluación Técnica IA ";
             const prompt = `Escenario planteado: ${state.currentScenario}. Mi solución técnica es: ${userSolution}. Evalúa mi respuesta indicando si es correcta, qué omití y qué estándares internacionales aplican.`;
             
             document.getElementById('scenario-response-area').classList.add('hidden');

@@ -17,11 +17,17 @@
             --danger-red: #ef4444;
             --gold-comercial: #d4af37;
         }
-        body { 
-            font-family: 'Inter', sans-serif; 
+        body {
+            font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
-            padding-bottom: 140px; 
+            padding-bottom: 100px;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding-bottom: 140px;
+            }
         }
         .bg-navy { background-color: var(--navy-blue); }
         .text-navy { color: var(--navy-blue); }
@@ -83,12 +89,12 @@
 
     <!-- Navigation Bar -->
     <div class="bg-white border-b border-slate-200 shadow-sm no-print sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-            <a href="../index.html" class="flex items-center gap-2 text-slate-600 hover:text-navy font-bold text-sm transition-colors">
-                <i class="fas fa-arrow-left"></i>
-                <span class="uppercase tracking-wide">Volver al Inicio</span>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-3 flex justify-between items-center">
+            <a href="../index.html" class="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-navy font-bold text-xs sm:text-sm transition-colors">
+                <i class="fas fa-arrow-left text-sm sm:text-base"></i>
+                <span class="uppercase tracking-wide"><span class="hidden sm:inline">Volver al </span>Inicio</span>
             </a>
-            <div class="text-xs font-black text-slate-400 uppercase tracking-widest">SIATM</div>
+            <div class="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wide sm:tracking-widest">SIATM</div>
         </div>
     </div>
 
@@ -97,17 +103,17 @@
     </div>
 
     <!-- Cabecera -->
-    <header class="bg-navy p-10 md:p-14 text-white relative overflow-hidden">
+    <header class="bg-navy p-6 sm:p-8 md:p-10 lg:p-14 text-white relative overflow-hidden">
         <div class="max-w-7xl mx-auto relative z-10">
-            <div class="flex flex-wrap items-center gap-4 mb-4">
-                <span class="bg-white/10 text-[10px] font-black px-4 py-1.5 rounded-full tracking-[0.2em] uppercase border border-white/20">SERVICIOS PROFESIONALES TERA</span>
+            <div class="flex flex-wrap items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+                <span class="bg-white/10 text-[9px] sm:text-[10px] font-black px-3 sm:px-4 py-1 sm:py-1.5 rounded-full tracking-wide sm:tracking-[0.2em] uppercase border border-white/20">SERVICIOS PROFESIONALES TERA</span>
             </div>
-            <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-black uppercase tracking-tighter leading-none">
                 Sistema Inteligente de Asistencia Técnica Multicliente
             </h1>
-            <p class="text-blue-200 mt-3 text-lg font-light italic opacity-70">Gestión Potabilización y Suministros.</p>
+            <p class="text-blue-200 mt-2 sm:mt-3 text-sm sm:text-base md:text-lg font-light italic opacity-70">Gestión Potabilización y Suministros.</p>
         </div>
-        <div class="absolute right-[-80px] top-[-80px] opacity-10 pointer-events-none scale-150">
+        <div class="hidden md:block absolute right-[-80px] top-[-80px] opacity-10 pointer-events-none scale-150">
             <svg width="400" height="400" viewBox="0 0 24 24" fill="white"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
         </div>
     </header>
@@ -115,83 +121,83 @@
     <!-- Navegación -->
     <nav class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm no-print">
         <div class="max-w-7xl mx-auto flex justify-center md:justify-start overflow-x-auto">
-            <button onclick="window.switchTab('recoleccion')" id="tab-recoleccion" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] tab-active whitespace-nowrap">Captura Técnica</button>
-            <button onclick="window.switchTab('comercial')" id="tab-comercial" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] opacity-40 whitespace-nowrap">Gestión Comercial</button>
-            <button onclick="window.switchTab('historial')" id="tab-historial" class="px-10 py-6 text-[10px] font-black uppercase tracking-[0.25em] opacity-40 whitespace-nowrap">Archivo Central</button>
+            <button onclick="window.switchTab('recoleccion')" id="tab-recoleccion" class="px-4 sm:px-6 md:px-10 py-3 sm:py-4 md:py-6 text-[9px] sm:text-[10px] font-black uppercase tracking-wide sm:tracking-[0.25em] tab-active whitespace-nowrap"><span class="hidden sm:inline">Captura </span>Técnica</button>
+            <button onclick="window.switchTab('comercial')" id="tab-comercial" class="px-4 sm:px-6 md:px-10 py-3 sm:py-4 md:py-6 text-[9px] sm:text-[10px] font-black uppercase tracking-wide sm:tracking-[0.25em] opacity-40 whitespace-nowrap"><span class="hidden sm:inline">Gestión </span>Comercial</button>
+            <button onclick="window.switchTab('historial')" id="tab-historial" class="px-4 sm:px-6 md:px-10 py-3 sm:py-4 md:py-6 text-[9px] sm:text-[10px] font-black uppercase tracking-wide sm:tracking-[0.25em] opacity-40 whitespace-nowrap">Archivo<span class="hidden sm:inline"> Central</span></button>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-6 md:p-10">
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 md:p-10">
         <form id="visitaForm" class="space-y-12">
             
             <!-- SECCIÓN TÉCNICA -->
             <div id="section-recoleccion" class="space-y-10 block animate-in fade-in slide-in-from-bottom-4">
                 
                 <!-- 01. Identificación -->
-                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
-                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-900/20">01</div>
-                            <h3 class="text-navy text-sm font-black uppercase tracking-widest">Identificación del Cliente</h3>
+                <section class="bg-white p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-4 sm:pb-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-900/20">01</div>
+                            <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest">Identificación del Cliente</h3>
                         </div>
                         <select id="tipoCliente" class="p-3 rounded-xl font-black border-2 border-navy text-navy text-xs uppercase" onchange="window.handleClientTypeChange(this.value)">
                             <option value="CARTERA">CLIENTE ACTIVO</option>
                             <option value="POTENCIAL">PROSPECTO POTENCIAL</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                         <div class="md:col-span-3">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Institución / Empresa / GAD</label>
+                            <label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Institución / Empresa / GAD</label>
                             <input type="text" id="organizacion" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="Nombre completo">
                         </div>
                         <div>
-                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Teléfono / WhatsApp</label>
+                            <label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Teléfono / WhatsApp</label>
                             <input type="text" id="telefono" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="Ej: 0998887766">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Correo Electrónico</label>
+                            <label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Correo Electrónico</label>
                             <input type="email" id="correo" class="w-full p-4 rounded-xl font-bold border-slate-200" placeholder="cliente@entidad.com">
                         </div>
-                        <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Gerente / Responsable</label><input type="text" id="autoridad" class="w-full p-4 rounded-xl"></div>
-                        <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Técnico en Planta</label><input type="text" id="tecnicoPlanta" class="w-full p-4 rounded-xl"></div>
+                        <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Gerente / Responsable</label><input type="text" id="autoridad" class="w-full p-4 rounded-xl"></div>
+                        <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2 ml-1">Técnico en Planta</label><input type="text" id="tecnicoPlanta" class="w-full p-4 rounded-xl"></div>
                         
                         <div class="md:col-span-4 grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100 mt-2">
-                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Provincia</label><input type="text" id="provincia" class="w-full p-4 rounded-xl"></div>
-                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Cantón / Ciudad</label><input type="text" id="canton" class="w-full p-4 rounded-xl"></div>
-                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Caudal (L/s)</label><input type="number" id="caudal" step="0.01" class="w-full p-4 rounded-xl font-black text-navy border-slate-200" oninput="window.calculateDoseAndStock()"></div>
-                            <div><label class="block text-[9px] font-black text-slate-400 uppercase mb-2">Horas Op/Día</label><input type="number" id="horasOpPlanta" step="0.5" value="24" class="w-full p-4 rounded-xl font-black border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                            <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2">Provincia</label><input type="text" id="provincia" class="w-full p-4 rounded-xl"></div>
+                            <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2">Cantón / Ciudad</label><input type="text" id="canton" class="w-full p-4 rounded-xl"></div>
+                            <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2">Caudal (L/s)</label><input type="number" id="caudal" step="0.01" class="w-full p-4 rounded-xl font-black text-navy border-slate-200" oninput="window.calculateDoseAndStock()"></div>
+                            <div><label class="block text-[10px] sm:text-[9px] font-black text-slate-400 uppercase mb-2">Horas Op/Día</label><input type="number" id="horasOpPlanta" step="0.5" value="24" class="w-full p-4 rounded-xl font-black border-slate-200" oninput="window.calculateDoseAndStock()"></div>
                         </div>
                     </div>
                 </section>
 
                 <!-- 02. Protocolo INEN 1108 -->
-                <section id="tech-analysis-section" class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
-                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center gap-4">
-                        <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">02</div>
-                        <h3 class="text-navy text-sm font-black uppercase tracking-widest">Protocolo Analítico INEN 1108</h3>
+                <section id="tech-analysis-section" class="bg-white p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-4 sm:pb-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">02</div>
+                        <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest">Protocolo Analítico INEN 1108</h3>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
+                    <div class="overflow-x-auto -mx-6 sm:mx-0">
+                        <table class="w-full text-sm min-w-[600px]">
                             <thead>
                                 <tr class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
-                                    <th class="p-6 text-left">Parámetro Técnico</th>
-                                    <th class="p-6 text-center">Agua Cruda</th>
-                                    <th class="p-6 text-center">Agua Tratada</th>
-                                    <th class="p-6 text-left">Validación Norma</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-left">Parámetro Técnico</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-center">Agua Cruda</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-center">Agua Tratada</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-left">Validación Norma</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100" id="paramTable"></tbody>
                         </table>
                     </div>
                     
-                    <div id="compliance-visual-panel" class="mt-10 p-8 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div id="compliance-visual-panel" class="mt-6 sm:mt-8 md:mt-10 p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6 md:gap-8">
                         <div class="flex-1">
                             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Indicador de Cumplimiento Global</h4>
                             <p class="text-xs text-slate-500 font-medium italic">Evaluación porcentual instantánea contra límites máximos permitidos.</p>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="text-right">
-                                <div id="realtime-percent" class="text-5xl font-black text-navy leading-none tracking-tighter">100%</div>
+                                <div id="realtime-percent" class="text-3xl sm:text-4xl md:text-5xl font-black text-navy leading-none tracking-tighter">100%</div>
                                 <div id="realtime-tag" class="text-[9px] font-black uppercase text-success-green mt-1">Nivel Óptimo</div>
                             </div>
                             <div class="w-20 h-20 relative flex items-center justify-center">
@@ -205,13 +211,13 @@
                 </section>
 
                 <!-- 03. Ingeniería de Dosificación -->
-                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
-                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center gap-4">
-                        <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">03</div>
-                        <h3 class="text-navy text-sm font-black uppercase tracking-widest">Ingeniería de Procesos y Stock</h3>
+                <section class="bg-white p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-4 sm:pb-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">03</div>
+                        <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest">Ingeniería de Procesos y Stock</h3>
                     </div>
                     <div id="dosageContainer" class="space-y-4">
-                        <div class="dosage-row grid grid-cols-1 md:grid-cols-6 gap-6 p-8 bg-slate-50 rounded-[2rem] border border-slate-200 relative shadow-inner">
+                        <div class="dosage-row grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 p-4 sm:p-6 md:p-8 bg-slate-50 rounded-xl sm:rounded-2xl md:rounded-[2rem] border border-slate-200 relative shadow-inner">
                             <div class="md:col-span-2">
                                 <label class="text-[9px] font-black uppercase text-slate-400 mb-2 block ml-1">Insumo Químico</label>
                                 <select class="w-full p-4 rounded-xl text-xs product-select font-black border-slate-200 uppercase">
@@ -236,15 +242,16 @@
                     <button type="button" onclick="window.addProductRow()" class="mt-6 text-navy text-[10px] font-black uppercase tracking-widest hover:underline">+ Adicionar Fila Operativa</button>
                 </section>
 
-                <section class="bg-white p-10 rounded-[2.5rem] border border-slate-200 card-shadow">
-                    <div class="border-b border-slate-100 pb-6 mb-8 flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">04</div>
-                            <h3 class="text-navy text-sm font-black uppercase tracking-widest">Observaciones de Ingeniería</h3>
+                <section class="bg-white p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] border border-slate-200 card-shadow">
+                    <div class="border-b border-slate-100 pb-4 sm:pb-6 mb-6 sm:mb-8 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+                        <div class="flex items-center gap-2 sm:gap-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-navy rounded-xl flex items-center justify-center text-white font-black">04</div>
+                            <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest">Observaciones de Ingeniería</h3>
                         </div>
-                        <button type="button" onclick="window.askAI('technical')" id="ai-btn-tech" class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg hover:shadow-indigo-500/40 transition-all active:scale-95 group">
-                            <span class="group-hover:animate-spin">✨</span> 
-                            <span id="ai-btn-tech-text">Diagnóstico</span>
+                        <button type="button" onclick="window.askAI('technical')" id="ai-btn-tech" class="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase shadow-lg hover:shadow-indigo-500/40 transition-all active:scale-95 group">
+                            <span class="group-hover:animate-spin"></span>
+                            <span class="hidden sm:inline" id="ai-btn-tech-text">Diagnóstico</span>
+                            <span class="sm:hidden">IA</span>
                         </button>
                     </div>
                     <textarea id="observaciones" rows="4" class="w-full p-6 rounded-2xl text-sm" placeholder="Hallazgos técnicos y recomendaciones de operación..."></textarea>
@@ -255,10 +262,11 @@
             <div id="section-comercial" class="hidden space-y-10 animate-in fade-in">
                 <section class="bg-white p-10 rounded-[2.5rem] border-l-[15px] border-gold-comercial card-shadow">
                     <div class="border-b border-slate-100 pb-6 mb-8 flex justify-between items-center">
-                        <h3 class="text-navy text-sm font-black uppercase tracking-widest text-gold-comercial">Análisis de Mercado</h3>
-                        <button type="button" onclick="window.askAI('commercial')" id="ai-btn-com" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg hover:shadow-orange-500/40 transition-all active:scale-95 group">
-                            <span class="group-hover:animate-spin">✨</span> 
-                            <span id="ai-btn-com-text">Estrategia</span>
+                        <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest text-gold-comercial">Análisis de Mercado</h3>
+                        <button type="button" onclick="window.askAI('commercial')" id="ai-btn-com" class="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black uppercase shadow-lg hover:shadow-orange-500/40 transition-all active:scale-95 group">
+                            <span class="group-hover:animate-spin"></span>
+                            <span class="hidden sm:inline" id="ai-btn-com-text">Estrategia</span>
+                            <span class="sm:hidden">IA</span>
                         </button>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -315,17 +323,17 @@
                 <!-- COTIZADOR -->
                 <section id="cotizacion-section" class="bg-white p-10 rounded-[2.5rem] border-l-[15px] border-success-green card-shadow">
                     <div class="border-b border-slate-100 pb-6 mb-8">
-                        <h3 class="text-navy text-sm font-black uppercase tracking-widest text-success-green">Generador de Propuesta Económica</h3>
+                        <h3 class="text-navy text-xs sm:text-sm font-black uppercase tracking-wide sm:tracking-widest text-success-green">Generador de Propuesta Económica</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs" id="quoteTable">
                             <thead>
                                 <tr class="text-slate-400 uppercase font-black border-b text-left">
-                                    <th class="p-4">Descripción del Insumo Optimizado</th>
-                                    <th class="p-4 text-center">Cant. Propuesta</th>
-                                    <th class="p-4 text-center">P. Unitario ($)</th>
-                                    <th class="p-4 text-right">Subtotal</th>
-                                    <th class="p-4 text-center w-10"></th>
+                                    <th class="p-3 sm:p-4 md:p-6">Descripción del Insumo Optimizado</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-center">Cant. Propuesta</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-center">P. Unitario ($)</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-right">Subtotal</th>
+                                    <th class="p-3 sm:p-4 md:p-6 text-center w-10"></th>
                                 </tr>
                             </thead>
                             <tbody id="quoteBody" class="divide-y divide-slate-50"></tbody>
@@ -347,18 +355,18 @@
 
     <!-- Barra de Acción Global -->
     <div class="action-bar no-print">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
             <div class="flex items-center gap-5">
-                <div class="w-14 h-14 bg-navy rounded-2xl flex items-center justify-center text-white shadow-xl rotate-2">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-navy rounded-2xl flex items-center justify-center text-white shadow-xl rotate-2">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
                 <div>
-                    <p id="footer-client-tag" class="text-[11px] font-black uppercase text-navy tracking-[0.3em]">Cliente de Cartera Activo</p>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Seguimiento de Ingeniería Terminado.</p>
+                    <p id="footer-client-tag" class="text-[10px] sm:text-[11px] font-black uppercase text-navy tracking-[0.3em]">Cliente de Cartera Activo</p>
+                    <p class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Seguimiento de Ingeniería Terminado.</p>
                 </div>
             </div>
-            <button type="button" onclick="window.handleFinalizeReport()" class="w-full md:w-auto bg-navy text-white px-20 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.4em] hover:bg-slate-800 shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 border-b-4 border-black">
-                Finalizar y Generar Documentos
+            <button type="button" onclick="window.handleFinalizeReport()" class="w-full md:w-auto bg-navy text-white px-6 sm:px-12 md:px-20 py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-xs tracking-[0.4em] hover:bg-slate-800 shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 border-b-4 border-black">
+                <span class="hidden sm:inline">Finalizar y</span> <span class="hidden sm:inline">Generar</span> Documentos
             </button>
         </div>
     </div>
@@ -382,7 +390,7 @@
                 <div class="bg-white rounded-[3rem] shadow-xl border border-slate-200 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left min-w-[600px] md:min-w-[900px]">
                         <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
-                            <tr><th class="p-8">Fecha</th><th class="p-8">Institución</th><th class="p-8">Ubicación</th><th class="p-8 text-center">Cumplimiento %</th><th class="p-8 text-center">Gestión</th></tr>
+                            <tr><th class="p-3 sm:p-4 md:p-6 lg:p-8">Fecha</th><th class="p-3 sm:p-4 md:p-6 lg:p-8">Institución</th><th class="p-3 sm:p-4 md:p-6 lg:p-8">Ubicación</th><th class="p-3 sm:p-4 md:p-6 lg:p-8 text-center">Cumplimiento %</th><th class="p-3 sm:p-4 md:p-6 lg:p-8 text-center">Gestión</th></tr>
                         </thead>
                         <tbody id="carteraBody" class="text-sm divide-y divide-slate-100"></tbody>
                     </table>
@@ -394,7 +402,7 @@
                 <div class="bg-white rounded-[3rem] shadow-xl border border-slate-200 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left min-w-[600px] md:min-w-[900px]">
                         <thead class="bg-slate-50 text-[10px] uppercase text-slate-400 font-black border-b">
-                            <tr><th class="p-8">Fecha</th><th class="p-8">Prospecto</th><th class="p-8">Provincia</th><th class="p-8 text-center">Total Ofertado</th><th class="p-8 text-center">Gestión</th></tr>
+                            <tr><th class="p-3 sm:p-4 md:p-6 lg:p-8">Fecha</th><th class="p-3 sm:p-4 md:p-6 lg:p-8">Prospecto</th><th class="p-3 sm:p-4 md:p-6 lg:p-8">Provincia</th><th class="p-3 sm:p-4 md:p-6 lg:p-8 text-center">Total Ofertado</th><th class="p-3 sm:p-4 md:p-6 lg:p-8 text-center">Gestión</th></tr>
                         </thead>
                         <tbody id="prospectosBody" class="text-sm divide-y divide-slate-100"></tbody>
                     </table>
@@ -460,10 +468,10 @@
         const table = document.getElementById('paramTable');
         table.innerHTML = PARAM_LIST.map((p, index) => `
             <tr class="hover:bg-slate-50 transition-colors">
-                <td class="p-6 font-bold text-navy">${p.name} <span class="text-[9px] text-slate-400 block">${p.unit}</span></td>
-                <td class="p-4"><input type="number" step="0.01" class="w-full p-3 rounded-lg border text-center font-bold raw-val" data-index="${index}"></td>
-                <td class="p-4"><input type="number" step="0.01" class="w-full p-3 rounded-lg border text-center font-bold treated-val" data-index="${index}" oninput="window.updateCompliance()"></td>
-                <td class="p-4">
+                <td class="p-3 sm:p-4 md:p-6 font-bold text-navy">${p.name} <span class="text-[9px] text-slate-400 block">${p.unit}</span></td>
+                <td class="p-3 sm:p-4"><input type="number" step="0.01" class="w-full p-3 rounded-lg border text-center font-bold raw-val" data-index="${index}"></td>
+                <td class="p-3 sm:p-4"><input type="number" step="0.01" class="w-full p-3 rounded-lg border text-center font-bold treated-val" data-index="${index}" oninput="window.updateCompliance()"></td>
+                <td class="p-3 sm:p-4">
                     <span class="text-[10px] font-black px-3 py-1 rounded-full bg-slate-100 text-slate-500">
                         LÍMITE: ${p.min ? p.min + '-' : ''}${p.limit}
                     </span>
